@@ -19,8 +19,10 @@ import { useTimezones } from './hooks/useTimezones';
 import { useTranslation } from './hooks/useTranslation';
 import { useHoveredHour } from './hooks/useHoveredHour';
 import { useTimelineLayout } from './hooks/useTimelineLayout';
+import { useMediaQuery } from './hooks/useMediaQuery';
 import { SortableTimeZoneRow } from './components/SortableTimeZoneRow';
 import { CurrentTimeLine } from './components/CurrentTimeLine';
+import { MobileTimezoneView } from './components/MobileTimezoneView';
 import { CityPicker } from './components/CityPicker';
 import { DateNavigator } from './components/DateNavigator';
 import { ShareButton } from './components/ShareButton';
@@ -36,6 +38,7 @@ function App() {
   const timelineLayout = useTimelineLayout();
   const { columnWidth, isDesktop, sidebarWidth } = timelineLayout;
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width: 640px)');
   
   // Get reference timezone for DateNavigator
   const referenceTimezone = cities.length > 0 ? cities[0].timezone : 'America/Los_Angeles';
@@ -137,7 +140,39 @@ function App() {
           <div className="text-center py-12">
             <p className="text-notion-textLight">{t('noCities')}</p>
           </div>
+        ) : isMobile ? (
+          // Mobile: Single scroll container layout
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div 
+              className="relative w-full"
+              data-timezone-container
+              onMouseMove={(e) => {
+                const target = e.target as HTMLElement;
+                const grid = target.closest('[data-hours-grid]');
+                if (grid) {
+                  const gridRect = grid.getBoundingClientRect();
+                  const mouseX = e.clientX - gridRect.left;
+                  const columnIndex = Math.floor(mouseX / columnWidth);
+                  const clampedColumnIndex = Math.max(0, Math.min(23, columnIndex));
+                  handleMouseMove(mouseX, clampedColumnIndex);
+                }
+              }}
+              onMouseLeave={handleColumnLeave}
+            >
+              <MobileTimezoneView
+                timezoneData={timezoneData}
+                currentHourColumn={currentHourColumn}
+                hoveredColumnIndex={hoveredColumnIndex}
+                columnWidth={columnWidth}
+              />
+            </div>
+          </DndContext>
         ) : (
+          // Desktop: Side-by-side layout
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -148,7 +183,6 @@ function App() {
                 className="relative w-full max-w-7xl mx-auto" 
                 data-timezone-container
                 onMouseMove={(e) => {
-                  // Only handle mouse move if we're over the timeline area
                   const target = e.target as HTMLElement;
                   const grid = target.closest('[data-hours-grid]');
                   if (grid) {
@@ -165,25 +199,22 @@ function App() {
                 }}
                 onMouseLeave={handleColumnLeave}
               >
-              {/* Main container - Each row has its own sidebar + timeline */}
-              <div 
-                className="relative w-full overflow-x-auto"
-                ref={containerRef}
-                style={{
-                  maxWidth: '100vw',
-                  scrollbarGutter: 'stable',
-                  overscrollBehavior: 'contain',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollBehavior: 'smooth',
-                }}
-              >
-                <SortableContext
-                  items={timezoneData.map((data) => data.city.id)}
-                  strategy={verticalListSortingStrategy}
+                <div 
+                  className="relative w-full overflow-x-auto"
+                  ref={containerRef}
+                  style={{
+                    maxWidth: '100vw',
+                    scrollbarGutter: 'stable',
+                    overscrollBehavior: 'contain',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollBehavior: 'smooth',
+                  }}
                 >
-                  {isDesktop ? (
-                    // Desktop: Side-by-side layout (existing)
-                    timezoneData.map((data) => (
+                  <SortableContext
+                    items={timezoneData.map((data) => data.city.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {timezoneData.map((data) => (
                       <div key={data.city.id} className="flex w-full min-w-max">
                         {/* Sidebar - Fixed */}
                         <div 
@@ -223,35 +254,20 @@ function App() {
                           />
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    // Mobile: Stacked layout (new)
-                    timezoneData.map((data) => (
-                      <SortableTimeZoneRow
-                        key={data.city.id}
-                        data={data}
-                        onRemove={() => handleRemoveCity(data.city.id)}
-                        t={t}
-                        fullRow={true}
-                        columnWidth={columnWidth}
-                        hoveredColumnIndex={hoveredColumnIndex}
-                        isDesktop={isDesktop}
-                      />
-                    ))
+                    ))}
+                  </SortableContext>
+                  
+                  {/* Current Time Line - Desktop only */}
+                  {timezoneData.length > 0 && currentHourColumn !== null && (
+                    <CurrentTimeLine
+                      timezoneData={timezoneData}
+                      currentHourColumn={currentHourColumn}
+                      hoveredColumnIndex={hoveredColumnIndex}
+                      columnWidth={columnWidth}
+                      sidebarWidth={sidebarWidth}
+                    />
                   )}
-                </SortableContext>
-                
-                {/* Current Time Line - Solid border indicator (positioned relative to scroll container) */}
-                {timezoneData.length > 0 && currentHourColumn !== null && isDesktop && (
-                  <CurrentTimeLine
-                    timezoneData={timezoneData}
-                    currentHourColumn={currentHourColumn}
-                    hoveredColumnIndex={hoveredColumnIndex}
-                    columnWidth={columnWidth}
-                    sidebarWidth={sidebarWidth}
-                  />
-                )}
-              </div>
+                </div>
               </div>
             </div>
           </DndContext>

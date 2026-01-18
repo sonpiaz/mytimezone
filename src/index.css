@@ -100,12 +100,12 @@
 
 /* Hide scrollbar for mobile timeline */
 @media (max-width: 640px) {
-  [data-timezone-row] [data-hours-grid] {
+  [data-hours-grid] {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
   }
   
-  [data-timezone-row] [data-hours-grid]::-webkit-scrollbar {
+  [data-hours-grid]::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
 }
