@@ -2,16 +2,36 @@ interface FeedbackButtonProps {
   t: (key: string) => string;
 }
 
+// Declare Tally type for TypeScript
+declare global {
+  interface Window {
+    Tally?: {
+      openPopup: (formId: string, options?: { width?: number; autoClose?: number }) => void;
+    };
+  }
+}
+
 export const FeedbackButton = ({ t }: FeedbackButtonProps) => {
-  // Replace with your Tally form URL
-  const TALLY_FORM_URL = 'https://tally.so/r/YOUR_FORM_ID';
+  // Replace 'YOUR_FORM_ID' with your actual Tally form ID
+  const TALLY_FORM_ID = 'YOUR_FORM_ID';
+
+  const openFeedback = () => {
+    if (window.Tally) {
+      window.Tally.openPopup(TALLY_FORM_ID, {
+        width: 400,
+        autoClose: 3000,
+      });
+    } else {
+      // Fallback: open in new tab if Tally script not loaded
+      window.open(`https://tally.so/r/${TALLY_FORM_ID}`, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
-    <a
-      href={TALLY_FORM_URL}
-      target="_blank"
-      rel="noopener noreferrer"
+    <button
+      onClick={openFeedback}
       className="fixed bottom-6 right-6 bg-apple-green text-white px-4 py-3 rounded-full shadow-lg hover:bg-green-600 transition-apple flex items-center gap-2 z-50"
+      aria-label={t('feedback')}
     >
       <svg
         className="w-5 h-5"
@@ -27,6 +47,6 @@ export const FeedbackButton = ({ t }: FeedbackButtonProps) => {
         />
       </svg>
       <span className="hidden sm:inline">{t('feedback')}</span>
-    </a>
+    </button>
   );
 };
