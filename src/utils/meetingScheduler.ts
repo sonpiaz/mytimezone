@@ -74,9 +74,14 @@ const evaluateTimeSlot = (
     const localEndHour = localEndDateTime.hour;
     
     // Check if in working hours
+    // Meeting is in working hours if:
+    // - Start hour >= working start AND
+    // - End hour <= working end (but end hour is exclusive, so we check < end)
+    // - Both start and end are within the same day (no day change)
     const isInWorkingHours = 
       localStartHour >= workingHours.start && 
-      localEndHour <= workingHours.end;
+      localEndHour < workingHours.end &&
+      localDateTime.day === localEndDateTime.day; // Same day check
     
     // Check if different day
     const isNextDay = localDateTime.day !== refDateTime.day || localDateTime.month !== refDateTime.month;
@@ -187,16 +192,57 @@ export const generateGoogleCalendarUrl = (slot: TimeSlot): string => {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startUTC}/${endUTC}&details=${details}`;
 };
 
-// Share via email
-export const shareViaEmail = (slot: TimeSlot) => {
-  const subject = encodeURIComponent('Proposed Meeting Time');
-  const body = encodeURIComponent(
-    `Hi,\n\nI'd like to propose the following meeting time:\n\n` +
-    slot.participants
-      .map(p => `${p.city.name}: ${p.startTime} - ${p.endTime} (${p.date})`)
-      .join('\n') +
-    `\n\nPlease let me know if this works for you.\n\nBest regards`
-  );
+// Generate meeting link
+export const generateMeetingLink = (
+  slot: TimeSlot,
+  selectedDate: Date,
+  duration: number,
+  referenceTimezone: string
+): string => {
+  // Get host participant time
+  const hostParticipant = slot.participants.find(p => p.isHost) || slot.participants[0];
+  const hostCity = hostParticipant.city;
   
-  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  // Parse the date and time from host participant
+  const hostDateStr = hostParticipant.date; // "Sat, Jan 18"
+  const hostStartTime = hostParticipant.startTime; // "08:00"
+  
+  // Get current year
+  const now = DateTime.now();
+  const year = now.year;
+  
+  // Create DateTime object
+  let startDateTime: DateTime;
+  
+  try {
+    // Try parsing with current year
+    const dateTimeStr = `${hostDateStr} ${year} ${hostStartTime}`;
+    startDateTime = DateTime.fromFormat(dateTimeStr, 'EEE, MMM d yyyy HH:mm', { zone: hostCity.timezone });
+    
+    // If parsing fails or date is in the past, try next year
+    if (!startDateTime.isValid || startDateTime < now) {
+      const dateTimeStrNext = `${hostDateStr} ${year + 1} ${hostStartTime}`;
+      startDateTime = DateTime.fromFormat(dateTimeStrNext, 'EEE, MMM d yyyy HH:mm', { zone: hostCity.timezone });
+    }
+  } catch (error) {
+    // Fallback: use selectedDate with slot startHour
+    startDateTime = DateTime.fromJSDate(selectedDate, { zone: hostCity.timezone })
+      .set({ hour: parseInt(hostStartTime.split(':')[0]), minute: parseInt(hostStartTime.split(':')[1]) });
+  }
+  
+  // Format as ISO timestamp
+  const isoTimestamp = startDateTime.toISO();
+  if (!isoTimestamp) {
+    // Fallback to current time if parsing fails
+    return `${window.location.origin}/m?t=${new Date().toISOString()}&tz=${referenceTimezone}&d=${duration}h`;
+  }
+  
+  // Format duration (e.g., "1h", "1.5h", "30m")
+  const durationStr = duration === 0.5 ? '30m' : `${duration}h`;
+  
+  // Generate URL
+  const baseUrl = window.location.origin;
+  const meetingUrl = `${baseUrl}/m?t=${encodeURIComponent(isoTimestamp)}&tz=${encodeURIComponent(referenceTimezone)}&d=${durationStr}`;
+  
+  return meetingUrl;
 };

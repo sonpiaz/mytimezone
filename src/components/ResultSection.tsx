@@ -1,46 +1,59 @@
-import { useState } from 'react';
 import type { TimeSlot } from '../types/meetingScheduler';
 import { TimeSlotCard } from './TimeSlotCard';
+import { useTranslation } from '../hooks/useTranslation';
+import { getTranslation } from '../constants/translations';
 
 interface ResultSectionProps {
   title: string;
   slots: TimeSlot[];
   variant: 'perfect' | 'sacrifice';
   onCopy?: () => void;
+  selectedDate: Date;
+  duration: number;
+  referenceTimezone: string;
 }
 
-export const ResultSection = ({ title, slots, variant, onCopy }: ResultSectionProps) => {
-  const [expanded, setExpanded] = useState(variant === 'perfect');
+export const ResultSection = ({ 
+  title, 
+  slots, 
+  variant, 
+  onCopy,
+  selectedDate,
+  duration,
+  referenceTimezone,
+}: ResultSectionProps) => {
+  const { language } = useTranslation();
+  
+  // Limit to TOP 5 slots
+  const topSlots = slots.slice(0, 5);
 
   return (
-    <div className="mb-4">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full text-left text-sm font-medium text-gray-700 mb-2 flex items-center justify-between"
-      >
-        {title} ({slots.length} {slots.length === 1 ? 'slot' : 'slots'})
-        <svg
-          className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {expanded && (
-        <div className="space-y-3">
-          {slots.slice(0, 5).map((slot, index) => (
-            <TimeSlotCard key={index} slot={slot} variant={variant} onCopy={onCopy} />
-          ))}
-          {slots.length > 5 && (
-            <p className="text-xs text-gray-500 text-center">
-              Showing top 5 of {slots.length} slots
-            </p>
-          )}
-        </div>
+    <div className="mb-6">
+      {title && (
+        <h4 className="text-sm font-medium text-notion-text mb-3">
+          {title}
+        </h4>
       )}
+      
+      <div>
+        {topSlots.map((slot, index) => (
+          <TimeSlotCard 
+            key={index} 
+            slot={slot} 
+            variant={variant} 
+            onCopy={onCopy}
+            selectedDate={selectedDate}
+            duration={duration}
+            referenceTimezone={referenceTimezone}
+            isLast={index === topSlots.length - 1}
+          />
+        ))}
+        {slots.length > 5 && (
+          <p className="text-xs text-notion-textLight text-center pt-2">
+            {getTranslation(language, 'showingTopSlots', { count: 5, total: slots.length })}
+          </p>
+        )}
+      </div>
     </div>
   );
 };

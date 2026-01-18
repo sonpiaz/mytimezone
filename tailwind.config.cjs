@@ -21,6 +21,16 @@ module.exports = {
           hover: '#F5F5F5',
           accent: '#2F81F7',
           accentLight: '#E8F1FD',
+          // Status colors (muted)
+          success: '#0F7B0F',
+          successBg: '#DDEDEA',
+          warning: '#B35C00', // Muted orange (not red!)
+          warningBg: '#FFEFD6', // Warm beige
+          neutral: '#787774',
+          neutralBg: '#F1F1EF',
+          // Primary button
+          primary: '#37352F',
+          primaryHover: '#5A5A5A',
         },
         // Time-of-day colors (softer pastels)
         hour: {

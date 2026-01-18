@@ -1,62 +1,62 @@
 import type { TimeSlot } from '../types/meetingScheduler';
-import { generateGoogleCalendarUrl, shareViaEmail } from '../utils/meetingScheduler';
+import { generateGoogleCalendarUrl, generateMeetingLink } from '../utils/meetingScheduler';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface TimeSlotCardProps {
   slot: TimeSlot;
   variant: 'perfect' | 'sacrifice';
   onCopy?: () => void;
+  selectedDate: Date;
+  duration: number;
+  referenceTimezone: string;
+  isLast?: boolean; // Để ẩn divider ở card cuối cùng
 }
 
-export const TimeSlotCard = ({ slot, variant, onCopy }: TimeSlotCardProps) => {
-  const variantStyles = {
-    perfect: 'border-notion-accentGreen/30 bg-notion-accentGreenLight/50',
-    sacrifice: 'border-orange-200/50 bg-orange-50/50',
-  };
-
-  const copyTimes = () => {
-    const text = slot.participants
-      .map(p => `${p.city.name}: ${p.startTime} - ${p.endTime} (${p.date})`)
-      .join('\n');
-    navigator.clipboard.writeText(text);
-    onCopy?.();
-  };
+export const TimeSlotCard = ({ 
+  slot, 
+  variant, 
+  onCopy,
+  selectedDate,
+  duration,
+  referenceTimezone,
+  isLast = false,
+}: TimeSlotCardProps) => {
+  const { t } = useTranslation();
 
   const addToCalendar = () => {
     const url = generateGoogleCalendarUrl(slot);
     window.open(url, '_blank');
   };
 
-  const shareEmail = () => {
-    shareViaEmail(slot);
+  const shareLink = () => {
+    const meetingUrl = generateMeetingLink(
+      slot,
+      selectedDate,
+      duration,
+      referenceTimezone
+    );
+    navigator.clipboard.writeText(meetingUrl);
+    // onCopy will show toast: "Meeting link copied! Share with participants"
+    onCopy?.();
   };
 
   return (
-    <div className={`rounded-xl border p-4 ${variantStyles[variant]}`}>
+    <div className="py-4">
       {/* Time for each participant */}
       <div className="space-y-2 mb-3">
         {slot.participants.map((p, idx) => {
-          // Determine text color: Green if in working hours, Red if sacrifice
+          // Determine text color: Muted orange if sacrifice, dark gray if in hours
           const isSacrificing = !p.isInWorkingHours;
-          const textColor = isSacrificing ? 'text-red-600' : 'text-notion-text';
+          const textColor = isSacrificing ? 'text-[#B35C00]' : 'text-[#37352F]';
 
           return (
             <div
               key={idx}
               className={`flex items-center justify-between text-sm ${textColor}`}
             >
-              <span className="flex items-center gap-2">
-                {p.isHost && <span>🏠</span>}
-                {p.city.name}
-                {isSacrificing && (
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
-                    Outside hours
-                  </span>
-                )}
-              </span>
+              <span>{p.city.name}</span>
               <span className="font-mono">
-                {p.startTime} - {p.endTime}
-                <span className="text-notion-textLight ml-2">{p.date}</span>
-                {p.isNextDay && <span className="text-red-500 ml-1">⚠️</span>}
+                {p.startTime} - {p.endTime} <span className="text-notion-textLight ml-2">{p.date}</span>
               </span>
             </div>
           );
@@ -65,44 +65,40 @@ export const TimeSlotCard = ({ slot, variant, onCopy }: TimeSlotCardProps) => {
 
       {/* Sacrifice summary */}
       {variant === 'sacrifice' && slot.sacrificeParticipants.length > 0 && (
-        <div className="mb-3 p-2 bg-red-50 rounded border border-red-200/50">
-          <p className="text-xs text-red-700">
-            <strong>Sacrificing:</strong> {slot.sacrificeParticipants.map(c => c.name).join(', ')} 
-            {slot.sacrificeParticipants.length === 1 ? ' is' : ' are'} outside working hours
+        <div className="mb-3 py-2 px-3 bg-[#F7F6F3] rounded-notion-md text-sm text-[#37352F]">
+          <p className="text-xs leading-relaxed">
+            <span className="font-medium">{slot.sacrificeParticipants.map(c => c.name).join(', ')}</span>{' '}
+            {t('outsideWorkingHours')}
           </p>
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-2 pt-3 border-t border-notion-borderLight">
+      <div className="flex gap-3 mt-4">
         <button
           onClick={addToCalendar}
-          className="flex-1 py-2 text-xs bg-notion-accent text-white rounded-lg hover:opacity-90 transition-notion flex items-center justify-center gap-1"
+          className="flex-1 py-2.5 text-xs font-medium bg-[#37352F] text-white rounded-notion-md hover:bg-[#5A5A5A] transition-all duration-150 flex items-center justify-center gap-1.5"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Schedule
+          {t('schedule')}
         </button>
         <button
-          onClick={copyTimes}
-          className="flex-1 py-2 text-xs border border-notion-border rounded-lg hover:bg-notion-hover transition-notion flex items-center justify-center gap-1 text-notion-text"
+          onClick={shareLink}
+          className="flex-1 py-2.5 text-xs font-medium bg-white text-notion-text border border-[#E3E3E3] rounded-notion-md hover:bg-[#F7F6F3] hover:border-[#D3D3D3] transition-all duration-150 flex items-center justify-center gap-1.5"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
           </svg>
-          Copy Times
-        </button>
-        <button
-          onClick={shareEmail}
-          className="flex-1 py-2 text-xs border border-notion-border rounded-lg hover:bg-notion-hover transition-notion flex items-center justify-center gap-1 text-notion-text"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          Email
+          {t('shareMeeting')}
         </button>
       </div>
+      
+      {/* Divider giữa các cards - ẩn ở card cuối cùng */}
+      {!isLast && (
+        <div className="mt-4 border-t border-[#E3E3E3]"></div>
+      )}
     </div>
   );
 };

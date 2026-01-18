@@ -6,14 +6,14 @@ export const CITIES: City[] = [
   { id: 'pago-pago', name: 'Pago Pago', nameVi: 'Pago Pago', country: 'American Samoa', timezone: 'Pacific/Pago_Pago', slug: 'pago-pago' },
   
   // GMT-10: Hawaii
-  { id: 'honolulu', name: 'Honolulu', nameVi: 'Honolulu', country: 'USA', state: 'Hawaii', timezone: 'Pacific/Honolulu', slug: 'honolulu' },
+  { id: 'honolulu', name: 'Honolulu', nameVi: 'Honolulu', country: 'USA', state: 'Hawaii', aliases: ['Hawaii', 'Waikiki'], timezone: 'Pacific/Honolulu', slug: 'honolulu' },
   
   // GMT-9: Alaska
   { id: 'anchorage', name: 'Anchorage', nameVi: 'Anchorage', country: 'USA', state: 'Alaska', timezone: 'America/Anchorage', slug: 'anchorage' },
   
   // GMT-8: Pacific Time
-  { id: 'los-angeles', name: 'Los Angeles', nameVi: 'Los Angeles', country: 'USA', state: 'California', timezone: 'America/Los_Angeles', slug: 'los-angeles' },
-  { id: 'san-francisco', name: 'San Francisco', nameVi: 'San Francisco', country: 'USA', state: 'California', timezone: 'America/Los_Angeles', slug: 'san-francisco' },
+  { id: 'los-angeles', name: 'Los Angeles', nameVi: 'Los Angeles', country: 'USA', state: 'California', aliases: ['LA', 'Hollywood'], timezone: 'America/Los_Angeles', slug: 'los-angeles' },
+  { id: 'san-francisco', name: 'San Francisco', nameVi: 'San Francisco', country: 'USA', state: 'California', aliases: ['SF', 'Bay Area', 'Silicon Valley'], timezone: 'America/Los_Angeles', slug: 'san-francisco' },
   { id: 'seattle', name: 'Seattle', nameVi: 'Seattle', country: 'USA', state: 'Washington', timezone: 'America/Los_Angeles', slug: 'seattle' },
   { id: 'portland', name: 'Portland', nameVi: 'Portland', country: 'USA', state: 'Oregon', timezone: 'America/Los_Angeles', slug: 'portland' },
   { id: 'vancouver', name: 'Vancouver', nameVi: 'Vancouver', country: 'Canada', timezone: 'America/Vancouver', slug: 'vancouver' },
@@ -30,7 +30,7 @@ export const CITIES: City[] = [
   { id: 'mexico-city', name: 'Mexico City', nameVi: 'Thành phố Mexico', country: 'Mexico', timezone: 'America/Mexico_City', slug: 'mexico-city' },
   
   // GMT-5: Eastern Time
-  { id: 'new-york', name: 'New York', nameVi: 'New York', country: 'USA', state: 'New York', timezone: 'America/New_York', slug: 'new-york' },
+  { id: 'new-york', name: 'New York', nameVi: 'New York', country: 'USA', state: 'New York', aliases: ['NYC', 'Manhattan', 'Brooklyn'], timezone: 'America/New_York', slug: 'new-york' },
   { id: 'miami', name: 'Miami', nameVi: 'Miami', country: 'USA', state: 'Florida', timezone: 'America/New_York', slug: 'miami' },
   { id: 'boston', name: 'Boston', nameVi: 'Boston', country: 'USA', state: 'Massachusetts', timezone: 'America/New_York', slug: 'boston' },
   { id: 'atlanta', name: 'Atlanta', nameVi: 'Atlanta', country: 'USA', state: 'Georgia', timezone: 'America/New_York', slug: 'atlanta' },
@@ -92,8 +92,10 @@ export const CITIES: City[] = [
   // GMT+5: Central Asia / South Asia
   { id: 'karachi', name: 'Karachi', nameVi: 'Karachi', country: 'Pakistan', timezone: 'Asia/Karachi', slug: 'karachi' },
   { id: 'tashkent', name: 'Tashkent', nameVi: 'Tashkent', country: 'Uzbekistan', timezone: 'Asia/Tashkent', slug: 'tashkent' },
-  // Note: India uses GMT+5:30, but we'll add New Delhi for completeness
+  // India uses GMT+5:30
   { id: 'new-delhi', name: 'New Delhi', nameVi: 'New Delhi', country: 'India', timezone: 'Asia/Kolkata', slug: 'new-delhi' },
+  { id: 'mumbai', name: 'Mumbai', nameVi: 'Mumbai', country: 'India', aliases: ['Bombay'], timezone: 'Asia/Kolkata', slug: 'mumbai' },
+  { id: 'bangalore', name: 'Bangalore', nameVi: 'Bangalore', country: 'India', aliases: ['Bengaluru'], timezone: 'Asia/Kolkata', slug: 'bangalore' },
   
   // GMT+6: South Asia / Central Asia
   { id: 'dhaka', name: 'Dhaka', nameVi: 'Dhaka', country: 'Bangladesh', timezone: 'Asia/Dhaka', slug: 'dhaka' },
@@ -101,7 +103,7 @@ export const CITIES: City[] = [
   
   // GMT+7: Southeast Asia
   { id: 'bangkok', name: 'Bangkok', nameVi: 'Bangkok', country: 'Thailand', timezone: 'Asia/Bangkok', slug: 'bangkok' },
-  { id: 'ho-chi-minh', name: 'Ho Chi Minh City', nameVi: 'Thành phố Hồ Chí Minh', country: 'Vietnam', timezone: 'Asia/Ho_Chi_Minh', slug: 'ho-chi-minh' },
+  { id: 'ho-chi-minh', name: 'Ho Chi Minh City', nameVi: 'Thành phố Hồ Chí Minh', country: 'Vietnam', aliases: ['Saigon', 'HCMC', 'SGN'], timezone: 'Asia/Ho_Chi_Minh', slug: 'ho-chi-minh' },
   { id: 'da-nang', name: 'Da Nang', nameVi: 'Đà Nẵng', country: 'Vietnam', timezone: 'Asia/Ho_Chi_Minh', slug: 'da-nang' },
   { id: 'hanoi', name: 'Hanoi', nameVi: 'Hà Nội', country: 'Vietnam', timezone: 'Asia/Ho_Chi_Minh', slug: 'hanoi' },
   { id: 'jakarta', name: 'Jakarta', nameVi: 'Jakarta', country: 'Indonesia', timezone: 'Asia/Jakarta', slug: 'jakarta' },
@@ -109,7 +111,7 @@ export const CITIES: City[] = [
   // GMT+8: East Asia
   { id: 'singapore', name: 'Singapore', nameVi: 'Singapore', country: 'Singapore', timezone: 'Asia/Singapore', slug: 'singapore' },
   { id: 'hong-kong', name: 'Hong Kong', nameVi: 'Hồng Kông', country: 'China', timezone: 'Asia/Hong_Kong', slug: 'hong-kong' },
-  { id: 'beijing', name: 'Beijing', nameVi: 'Bắc Kinh', country: 'China', timezone: 'Asia/Shanghai', slug: 'beijing' },
+  { id: 'beijing', name: 'Beijing', nameVi: 'Bắc Kinh', country: 'China', aliases: ['Peking'], timezone: 'Asia/Shanghai', slug: 'beijing' },
   { id: 'shenzhen', name: 'Shenzhen', nameVi: 'Shenzhen', country: 'China', timezone: 'Asia/Shanghai', slug: 'shenzhen' },
   { id: 'kuala-lumpur', name: 'Kuala Lumpur', nameVi: 'Kuala Lumpur', country: 'Malaysia', timezone: 'Asia/Kuala_Lumpur', slug: 'kuala-lumpur' },
   { id: 'taipei', name: 'Taipei', nameVi: 'Đài Bắc', country: 'Taiwan', timezone: 'Asia/Taipei', slug: 'taipei' },
@@ -142,8 +144,12 @@ export const CITIES: City[] = [
   { id: 'kiritimati', name: 'Kiritimati', nameVi: 'Kiritimati', country: 'Kiribati', timezone: 'Pacific/Kiritimati', slug: 'kiritimati' },
 ];
 
-// Default cities for initial load (San Francisco is reference/home city)
-export const DEFAULT_CITIES = ['san-francisco', 'new-york', 'london', 'singapore', 'da-nang'];
+// Number of default cities to show
+export const DEFAULT_CITIES_COUNT = 3;
+
+// Default cities for initial load (fallback only - actual defaults come from auto-detect)
+// This is used as fallback in urlHelpers.ts when URL parsing fails
+export const DEFAULT_CITIES = ['san-francisco', 'london', 'singapore'];
 
 // Helper to find city by slug
 export const findCityBySlug = (slug: string): City | undefined => {

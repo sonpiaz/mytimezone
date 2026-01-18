@@ -4,6 +4,7 @@ export interface City {
   nameVi: string;
   country: string;
   state?: string; // State/Province (optional)
+  aliases?: string[]; // Alternative names/aliases for search (e.g., "Hawaii" for Honolulu, "Saigon" for Ho Chi Minh City)
   timezone: string; // IANA format
   slug: string; // for URL
 }

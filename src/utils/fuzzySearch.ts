@@ -81,6 +81,7 @@ export const fuzzySearchCities = (
       city.nameVi || '',
       city.country,
       city.state || '',
+      ...(city.aliases || []), // Include aliases (e.g., "Hawaii" for Honolulu, "Saigon" for Ho Chi Minh City)
       gmtOffset,
       timezoneAbbr,
     ].filter(Boolean); // Remove empty strings

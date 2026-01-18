@@ -22,6 +22,9 @@ export const HourCell = ({ slot, columnWidth, isHovered, isDesktop }: HourCellPr
 
   return (
     <div
+      data-hour-cell
+      data-column-index={slot.columnIndex}
+      data-local-hour={slot.localHour}
       className={`
         h-full flex items-center justify-center
         border-r border-notion-borderLight cursor-pointer transition-notion relative z-10

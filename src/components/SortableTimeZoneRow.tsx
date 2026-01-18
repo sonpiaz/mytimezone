@@ -37,10 +37,21 @@ export const SortableTimeZoneRow = ({
     isDragging,
   } = useSortable({ id: data.city.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  // Enhanced drag state styling for mobile
+  // Combine transform with scale for lift effect
+  const combinedTransform = transform
+    ? `${CSS.Transform.toString(transform)} ${isDragging ? 'scale(1.02)' : ''}`
+    : isDragging
+    ? 'scale(1.02)'
+    : undefined;
+
+  const style: React.CSSProperties = {
+    transform: combinedTransform,
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.15)' : 'none',
+    zIndex: isDragging ? 100 : 'auto',
+    touchAction: 'none', // Prevent scrolling while dragging
   };
 
   return (

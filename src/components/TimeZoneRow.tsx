@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import type { TimeZoneData } from '../types';
 import { CitySidebar } from './CitySidebar';
 import { TimelineGrid } from './TimelineGrid';
-import { formatLocation, formatOffset, getTimeOnly } from '../utils/formatHelpers';
+import { formatOffset, getTimeOnly } from '../utils/formatHelpers';
 
 interface TimeZoneRowProps {
   data: TimeZoneData;
@@ -35,11 +35,8 @@ export const TimeZoneRow = ({
   hoveredColumnIndex = null,
   isDesktop = true,
 }: TimeZoneRowProps) => {
-  const { city, gmtOffset, formattedTime, formattedDate, timezoneAbbr, hours } = data;
+  const { city, formattedTime, formattedDate, hours } = data;
   const rowRef = useRef<HTMLDivElement>(null);
-  
-  // Format timezone label (GMT offset or abbreviation)
-  const timezoneLabel = timezoneAbbr || gmtOffset;
 
   // Sidebar only (for fixed left column)
   if (sidebarOnly) {
@@ -47,9 +44,10 @@ export const TimeZoneRow = ({
       <div
         ref={rowRef}
         data-timezone-row
-        className={`group bg-white rounded-xl border border-notion-border mb-3 overflow-hidden hover:shadow-notion-md transition-notion timezone-row ${
+        className={`group bg-white border-b border-[#F0F0F0] timezone-row flex items-center ${
           isDragging ? 'cursor-grabbing opacity-50' : ''
         }`}
+        style={{ minHeight: '80px', height: '80px' }}
       >
         <CitySidebar
           data={data}
@@ -69,9 +67,10 @@ export const TimeZoneRow = ({
       <div
         ref={rowRef}
         data-timezone-row
-        className={`bg-white transition-notion ${
+        className={`bg-white flex items-start ${
           isDragging ? 'cursor-grabbing opacity-50' : ''
         }`}
+        style={{ minHeight: '80px', height: '80px' }}
       >
         <TimelineGrid
           hours={hours}
@@ -87,7 +86,6 @@ export const TimeZoneRow = ({
   if (fullRow) {
     const offsetDisplay = formatOffset(data);
     const timeOnly = getTimeOnly(formattedTime);
-    const locationDisplay = formatLocation(city);
 
     // Find current hour column index
     const currentHourColumn = hours.findIndex(h => h.isCurrentHour);
@@ -98,7 +96,7 @@ export const TimeZoneRow = ({
       <div
         ref={rowRef}
         data-timezone-row
-        className={`group bg-white rounded-xl border border-notion-border mb-3 overflow-hidden hover:shadow-notion-md transition-notion timezone-row relative ${
+        className={`group bg-white border-b border-[#F0F0F0] timezone-row relative ${
           isDragging ? 'cursor-grabbing opacity-50' : ''
         }`}
       >
@@ -150,18 +148,10 @@ export const TimeZoneRow = ({
                   </span>
                 ) : null}
 
-                {/* City + Country */}
+                {/* City name only (full, không truncate) */}
                 <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-notion-text text-sm truncate">
-                      {city.name}
-                    </span>
-                    <span className="text-xs text-notion-textLighter flex-shrink-0">
-                      {timezoneLabel}
-                    </span>
-                  </div>
-                  <span className="text-xs text-notion-textLighter truncate mt-0.5">
-                    {locationDisplay}
+                  <span className="font-semibold text-notion-text text-sm">
+                    {city.name}
                   </span>
                 </div>
               </div>

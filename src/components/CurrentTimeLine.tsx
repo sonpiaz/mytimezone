@@ -1,84 +1,108 @@
-import type { TimeZoneData } from '../types';
-import { DATE_HEADER_HEIGHT, HOUR_ROW_HEIGHT_DESKTOP, HOUR_ROW_HEIGHT_MOBILE } from '../constants/layout';
+import { useRef, useEffect, useState } from 'react';
+import { DATE_HEADER_HEIGHT } from '../constants/layout';
 
-interface CurrentTimeLineProps {
-  timezoneData: TimeZoneData[];
-  currentHourColumn: number | null;
-  hoveredColumnIndex: number | null;
-  columnWidth: number;
-  sidebarWidth: number;
-  showCurrentTime?: boolean; // Only show current time line if viewing today
+/**
+ * Single Time Indicator Component
+ * 
+ * Renders ONE indicator that:
+ * - Shows at current hour when not hovering
+ * - Moves to hovered column when hovering
+ * - Covers ALL cities dynamically
+ * 
+ * CRITICAL FIX: Uses DOM position directly instead of math calculation
+ */
+interface TimeIndicatorProps {
+  cellPosition: { left: number; width: number } | null; // DOM position from hovered/current cell
+  totalCities: number;               // Total number of cities (for dynamic height)
+  isMobile?: boolean;                // Mobile layout flag
+  showIndicator?: boolean;            // Only show when viewing "Today"
 }
 
-export const CurrentTimeLine = ({
-  timezoneData,
-  currentHourColumn,
-  hoveredColumnIndex,
-  columnWidth,
-  sidebarWidth,
-  showCurrentTime = true,
-}: CurrentTimeLineProps) => {
-  // Only show indicator when viewing "Today"
-  if (!showCurrentTime || timezoneData.length === 0) {
+export const TimeIndicator = ({
+  cellPosition,
+  totalCities,
+  isMobile = false,
+  showIndicator = true,
+}: TimeIndicatorProps) => {
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const [actualRowHeight, setActualRowHeight] = useState(0);
+  const [topPosition, setTopPosition] = useState(0);
+
+  // Don't show if disabled or no cities
+  if (!showIndicator || totalCities === 0) {
     return null;
   }
 
-  // Determine active column: hover position OR current hour
-  const activeColumn = hoveredColumnIndex !== null ? hoveredColumnIndex : currentHourColumn;
-  
-  // If no active column, don't show
-  if (activeColumn === null) {
+  // Don't show if no valid position
+  if (!cellPosition) {
     return null;
   }
 
-  // Calculate position: sidebar width + (column index * column width)
-  const leftPosition = sidebarWidth + (activeColumn * columnWidth);
+  // CRITICAL FIX: Measure ACTUAL position and height from DOM
+  useEffect(() => {
+    const container = document.querySelector('[data-timezone-container]');
+    
+    if (container) {
+      const containerRect = container.getBoundingClientRect();
+      
+      // Find all timeline rows to measure height
+      const timelineRows = container.querySelectorAll('[data-timezone-row]');
+      
+      if (timelineRows.length > 0) {
+        const firstRow = timelineRows[0] as HTMLElement;
+        const lastRow = timelineRows[timelineRows.length - 1] as HTMLElement;
+        
+        const firstRect = firstRow.getBoundingClientRect();
+        const lastRect = lastRow.getBoundingClientRect();
+        
+        // Calculate height: bottom of last row - top of first row
+        const measuredTotalHeight = lastRect.bottom - firstRect.top;
+        
+        // Top position: first row top relative to container + date header height
+        const topRelativeToContainer = firstRect.top - containerRect.top + DATE_HEADER_HEIGHT;
+        
+        // Height: total height minus date header
+        const indicatorHeight = measuredTotalHeight - DATE_HEADER_HEIGHT;
+        
+        setTopPosition(topRelativeToContainer);
+        setActualRowHeight(indicatorHeight);
+        
+        // Debug log
+        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          console.log('=== INDICATOR POSITION DEBUG ===');
+          console.log('Container top:', containerRect.top);
+          console.log('First row top:', firstRect.top);
+          console.log('Top relative to container:', topRelativeToContainer);
+          console.log('Indicator height:', indicatorHeight);
+          console.log('Cell position left:', cellPosition.left);
+          console.log('Cell position width:', cellPosition.width);
+        }
+      }
+    }
+  }, [totalCities, isMobile, cellPosition]);
 
-  // Detect mobile: if sidebarWidth < 400, it's likely mobile
-  const isMobile = sidebarWidth < 400;
-  const hourRowHeight = isMobile ? HOUR_ROW_HEIGHT_MOBILE : HOUR_ROW_HEIGHT_DESKTOP;
-  
-  // Calculate total height: number of cities × hour row height
-  // Each city has one hour row (date header is separate, not included in the box)
-  // IMPORTANT: Each timezone row has:
-  // - Date header: 24px (DATE_HEADER_HEIGHT) - NOT included in box
-  // - Hour row: 56px desktop / 64px mobile (HOUR_ROW_HEIGHT) - INCLUDED in box
-  // - Margin between rows: mb-3 = 12px - NOT included in box (spacing between rows)
-  const totalHeight = timezoneData.length * hourRowHeight;
-  
-  // Debug: Log to verify calculation (only in development)
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    console.log('CurrentTimeLine Debug:', {
-      citiesCount: timezoneData.length,
-      hourRowHeight,
-      totalHeight,
-      activeColumn,
-      isHovered: hoveredColumnIndex !== null,
-      currentHour: currentHourColumn,
-    });
+  // Don't render until we have actual measurements
+  if (actualRowHeight === 0 || !cellPosition) {
+    return null;
   }
 
-  // World Time Buddy style: Black border box around the entire column
-  // Follow hover position if hovering, otherwise show at current hour
-  // IMPORTANT: Ensure this is rendered outside any overflow containers
   return (
     <div
-      className="absolute pointer-events-none z-30 transition-all duration-200 ease-out"
+      ref={indicatorRef}
+      className="absolute pointer-events-none z-30"
       style={{
-        left: `${leftPosition}px`,
-        top: `${DATE_HEADER_HEIGHT}px`, // Start after date header row
-        width: `${columnWidth}px`,
-        height: `${totalHeight}px`,
-        minHeight: `${totalHeight}px`, // Ensure minimum height
+        left: `${cellPosition.left}px`, // CRITICAL: Use DOM position directly
+        top: `${topPosition}px`, // Measured from DOM
+        width: `${cellPosition.width}px`, // CRITICAL: Use actual cell width
+        height: `${actualRowHeight}px`, // Measured from DOM
         border: '2px solid #1a1a1a', // Black border (World Time Buddy style)
-        borderRadius: '6px', // Slightly rounded corners
+        borderRadius: '6px',
         boxSizing: 'border-box',
-        backgroundColor: 'transparent', // No fill, only border
-        // Ensure it's not clipped by parent overflow
-        position: 'absolute',
+        backgroundColor: 'transparent',
+        transition: 'left 0.1s ease-out, width 0.1s ease-out', // Smooth movement
       }}
       aria-hidden="true"
-      aria-label={hoveredColumnIndex !== null ? "Hovered time indicator" : "Current time indicator"}
+      aria-label="Time indicator"
     />
   );
 };

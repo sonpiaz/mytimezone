@@ -4,6 +4,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -20,10 +21,9 @@ import { useTranslation } from './hooks/useTranslation';
 import { useHoveredHour } from './hooks/useHoveredHour';
 import { useTimelineLayout } from './hooks/useTimelineLayout';
 import { SortableTimeZoneRow } from './components/SortableTimeZoneRow';
-import { CurrentTimeLine } from './components/CurrentTimeLine';
+import { TimeIndicator } from './components/CurrentTimeLine';
 import { MobileTimezoneView } from './components/MobileTimezoneView';
 import { CitySearch } from './components/CitySearch';
-import { DateNavigator } from './components/DateNavigator';
 import { ShareButton } from './components/ShareButton';
 import { FeedbackButton } from './components/FeedbackButton';
 import { ToastManager } from './components/Toast';
@@ -38,24 +38,17 @@ interface Toast {
 
 function App() {
   const [cities, setCities] = useUrlState();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showScheduler, setShowScheduler] = useState(false);
+  // Always use today's date (no date navigation needed)
+  const selectedDate = new Date();
   const { timezoneData, currentHourColumn } = useTimezones(cities, selectedDate);
   
-  // Check if selected date is today (for showing current time indicator)
-  const isSelectedDateToday = (() => {
-    if (!selectedDate) return true;
-    const today = new Date();
-    const selected = new Date(selectedDate);
-    return (
-      today.getFullYear() === selected.getFullYear() &&
-      today.getMonth() === selected.getMonth() &&
-      today.getDate() === selected.getDate()
-    );
-  })();
+  // Always show current time indicator (always viewing today)
+  const isSelectedDateToday = true;
   
   const { language, t, toggleLanguage } = useTranslation();
-  const { hoveredColumnIndex, handleMouseMove, handleColumnLeave } = useHoveredHour();
+  const { hoveredColumnIndex, hoveredCellPosition, handleMouseMove, handleCellHover, handleColumnLeave } = useHoveredHour();
+  const [currentHourCellPosition, setCurrentHourCellPosition] = useState<{ left: number; width: number } | null>(null);
   const timelineLayout = useTimelineLayout();
   const { columnWidth, isDesktop, sidebarWidth } = timelineLayout;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,13 +63,60 @@ function App() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
   
-  // Get reference timezone for DateNavigator
-  const referenceTimezone = cities.length > 0 ? cities[0].timezone : 'America/Los_Angeles';
+  // Get current hour cell position from DOM
+  useEffect(() => {
+    if (currentHourColumn !== null && containerRef.current) {
+      const updateCurrentHourPosition = () => {
+        // Find the current hour cell in the first timeline row (reference timezone)
+        const currentHourCell = containerRef.current?.querySelector(
+          `[data-hour-cell][data-column-index="${currentHourColumn}"]`
+        ) as HTMLElement | null;
+        
+        if (currentHourCell && containerRef.current) {
+          const cellRect = currentHourCell.getBoundingClientRect();
+          const containerRect = containerRef.current.getBoundingClientRect();
+          
+          const left = cellRect.left - containerRect.left;
+          const width = cellRect.width;
+          
+          setCurrentHourCellPosition({ left, width });
+          
+          if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+            console.log('=== CURRENT HOUR POSITION ===');
+            console.log('Current hour column:', currentHourColumn);
+            console.log('Cell left (relative):', left);
+            console.log('Cell width:', width);
+          }
+        }
+      };
+      
+      // Update immediately and on resize
+      updateCurrentHourPosition();
+      window.addEventListener('resize', updateCurrentHourPosition);
+      
+      // Update every minute when time changes
+      const interval = setInterval(updateCurrentHourPosition, 60000);
+      
+      return () => {
+        window.removeEventListener('resize', updateCurrentHourPosition);
+        clearInterval(interval);
+      };
+    }
+  }, [currentHourColumn, timezoneData]);
 
+  // Sensors configuration
+  // Desktop: PointerSensor (mouse) with distance constraint
+  // Mobile: TouchSensor with long press (500ms delay)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 500,        // Long press 500ms on mobile
+        tolerance: 5,      // Allow slight movement while waiting
       },
     }),
     useSensor(KeyboardSensor, {
@@ -136,9 +176,19 @@ function App() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-notion-text">
-                {t('title')}
-              </h1>
+              <a
+                href="/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Reset về trang chủ - reload page
+                  window.location.href = '/';
+                }}
+                className="cursor-pointer hover:opacity-80 transition-opacity inline-block"
+              >
+                <h1 className="text-2xl font-semibold text-notion-text">
+                  {t('title')}
+                </h1>
+              </a>
               <p className="text-sm text-notion-textLight mt-1 hidden md:block">
                 {t('subtitle')}
               </p>
@@ -150,7 +200,7 @@ function App() {
                   className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2 transition-colors"
                 >
                   <span>🎯</span>
-                  <span className="hidden sm:inline">Find Best Time</span>
+                  <span className="hidden sm:inline">{t('findBestTime')}</span>
                 </button>
               )}
               <button
@@ -169,17 +219,6 @@ function App() {
       {/* Main Content - Notion style centered container */}
       <main className="w-full">
         <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Date Navigator */}
-        {cities.length > 0 && (
-          <div className="mb-6">
-            <DateNavigator
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              referenceTimezone={referenceTimezone}
-            />
-          </div>
-        )}
-        
         {/* City Search */}
         <div className="mb-6">
           <CitySearch
@@ -222,7 +261,19 @@ function App() {
                 currentHourColumn={currentHourColumn}
                 hoveredColumnIndex={hoveredColumnIndex}
                 columnWidth={columnWidth}
+                onRemoveCity={handleRemoveCity}
+                t={t}
               />
+              
+              {/* Single Time Indicator - Mobile */}
+              {timezoneData.length > 0 && (
+                <TimeIndicator
+                  cellPosition={hoveredCellPosition || currentHourCellPosition}
+                  totalCities={timezoneData.length}
+                  isMobile={true}
+                  showIndicator={isSelectedDateToday}
+                />
+              )}
             </div>
           </DndContext>
         ) : (
@@ -238,20 +289,30 @@ function App() {
                 data-timezone-container
                 onMouseMove={(e) => {
                   const target = e.target as HTMLElement;
-                  const grid = target.closest('[data-hours-grid]');
-                  if (grid) {
-                    const gridRect = grid.getBoundingClientRect();
-                    const mouseX = e.clientX - gridRect.left;
-                    // Desktop: Use grid width / 24. Mobile: Use columnWidth
-                    const gridWidth = gridRect.width;
-                    const columnIndex = isDesktop 
-                      ? Math.floor((mouseX / gridWidth) * 24)
-                      : Math.floor(mouseX / columnWidth);
-                    const clampedColumnIndex = Math.max(0, Math.min(23, columnIndex));
-                    const containerRect = containerRef.current?.getBoundingClientRect();
-                    if (containerRect) {
-                      const absoluteX = e.clientX - containerRect.left;
-                      handleMouseMove(absoluteX, clampedColumnIndex);
+                  const hourCell = target.closest('[data-hour-cell]') as HTMLElement | null;
+                  
+                  if (hourCell && containerRef.current) {
+                    const cellRect = hourCell.getBoundingClientRect();
+                    const containerRect = containerRef.current.getBoundingClientRect();
+                    
+                    // Calculate position relative to container
+                    const left = cellRect.left - containerRect.left;
+                    const width = cellRect.width;
+                    const columnIndex = hourCell.dataset.columnIndex 
+                      ? parseInt(hourCell.dataset.columnIndex, 10)
+                      : 0;
+                    
+                    // Emit cell position
+                    handleCellHover({ left, width, columnIndex });
+                    
+                    // DEBUG
+                    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+                      console.log('=== CELL HOVER ===');
+                      console.log('Cell left (absolute):', cellRect.left);
+                      console.log('Container left:', containerRect.left);
+                      console.log('Cell left (relative):', left);
+                      console.log('Cell width:', width);
+                      console.log('Column index:', columnIndex);
                     }
                   }
                 }}
@@ -275,7 +336,11 @@ function App() {
                     strategy={verticalListSortingStrategy}
                   >
                     {timezoneData.map((data) => (
-                      <div key={data.city.id} className="flex w-full min-w-max">
+                      <div 
+                        key={data.city.id} 
+                        className="flex w-full min-w-max items-stretch"
+                        style={{ minHeight: '80px' }}
+                      >
                         {/* Sidebar - Fixed */}
                         <div 
                           className="flex-shrink-0 bg-white z-10"
@@ -316,19 +381,17 @@ function App() {
                       </div>
                     ))}
                   </SortableContext>
-                  
-                  {/* Current Time Line - Desktop only */}
-                  {timezoneData.length > 0 && (
-                    <CurrentTimeLine
-                      timezoneData={timezoneData}
-                      currentHourColumn={currentHourColumn}
-                      hoveredColumnIndex={hoveredColumnIndex}
-                      columnWidth={columnWidth}
-                      sidebarWidth={sidebarWidth}
-                      showCurrentTime={isSelectedDateToday}
-                    />
-                  )}
                 </div>
+                
+                {/* Single Time Indicator - Desktop: Render OUTSIDE overflow container */}
+                {timezoneData.length > 0 && isDesktop && (
+                  <TimeIndicator
+                    cellPosition={hoveredCellPosition || currentHourCellPosition}
+                    totalCities={timezoneData.length}
+                    isMobile={false}
+                    showIndicator={isSelectedDateToday}
+                  />
+                )}
               </div>
             </div>
           </DndContext>
@@ -348,7 +411,7 @@ function App() {
           isOpen={showScheduler}
           onClose={() => setShowScheduler(false)}
           cities={cities}
-          onCopy={() => showToast('Copied to clipboard!', 'success')}
+          onCopy={() => showToast(t('meetingLinkCopied'), 'success')}
         />
       )}
     </div>

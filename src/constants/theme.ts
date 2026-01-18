@@ -16,11 +16,40 @@ export const colors = {
   borderLight: '#F1F1EF',
   divider: '#EBEBEA',
   
-  // Accent
+  // Accent (muted, soft)
   accentBlue: '#2F81F7',
   accentBlueLight: '#E8F1FD',
-  accentGreen: '#0F7B6C',
-  accentGreenLight: '#E6F4F1',
+  accentGreen: '#0F7B0F', // Muted green for text
+  accentGreenLight: '#DDEDEA', // Notion green background
+  accentGreenBg: '#DDEDEA',
+  
+  // Status colors (muted, not saturated)
+  statusSuccess: '#0F7B0F', // Muted green text
+  statusSuccessBg: '#DDEDEA', // Soft green background
+  statusWarning: '#B35C00', // Muted orange text (not red!)
+  statusWarningBg: '#FFEFD6', // Warm beige background
+  statusNeutral: '#787774', // Gray text
+  statusNeutralBg: '#F1F1EF', // Light gray background
+  
+  // Primary button (dark gray, not blue)
+  primaryButton: '#37352F',
+  primaryButtonHover: '#5A5A5A',
+  
+  // Button colors (Tally/Notion style)
+  button: {
+    primary: {
+      bg: '#37352F',
+      bgHover: '#5A5A5A',
+      text: '#FFFFFF',
+    },
+    secondary: {
+      bg: '#FFFFFF',
+      bgHover: '#F7F6F3',
+      text: '#37352F',
+      border: '#E3E3E3',
+      borderHover: '#D3D3D3',
+    },
+  },
   
   // Time-of-day (softer pastels)
   hourNight: '#F7F7F5',        // 0-7h: very light warm gray

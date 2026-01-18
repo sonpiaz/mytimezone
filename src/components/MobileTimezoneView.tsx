@@ -1,7 +1,8 @@
 import { useRef, useEffect } from 'react';
 import type { TimeZoneData } from '../types';
 import { HourCell } from './HourCell';
-import { formatLocation, formatOffset, getTimeOnly } from '../utils/formatHelpers';
+import { SortableTimeZoneRow } from './SortableTimeZoneRow';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SIDEBAR_WIDTH_MOBILE_VIEW, MOBILE_ROW_HEIGHT, DATE_HEADER_HEIGHT, HOURS_PER_DAY } from '../constants/layout';
 
 interface MobileTimezoneViewProps {
@@ -9,6 +10,8 @@ interface MobileTimezoneViewProps {
   currentHourColumn: number | null;
   hoveredColumnIndex: number | null;
   columnWidth: number;
+  onRemoveCity: (cityId: string) => void;
+  t: (key: string) => string;
 }
 
 export const MobileTimezoneView = ({
@@ -16,6 +19,8 @@ export const MobileTimezoneView = ({
   currentHourColumn,
   hoveredColumnIndex,
   columnWidth,
+  onRemoveCity,
+  t,
 }: MobileTimezoneViewProps) => {
   const timelineScrollRef = useRef<HTMLDivElement>(null);
 
@@ -32,63 +37,33 @@ export const MobileTimezoneView = ({
 
   return (
     <div className="flex w-full relative">
-      {/* LEFT: Sidebar - Fixed, không scroll */}
-      <div className="flex-shrink-0 bg-white z-10 border-r border-notion-borderLight" style={{ width: `${SIDEBAR_WIDTH_MOBILE_VIEW}px` }}>
-        {timezoneData.map((data) => {
-          const offsetDisplay = formatOffset(data);
-          const timeOnly = getTimeOnly(data.formattedTime);
-          const locationDisplay = formatLocation(data.city);
-          const timezoneLabel = data.timezoneAbbr || data.gmtOffset;
-
-          return (
-            <div
+      {/* LEFT: Sidebar - Fixed, không scroll - With SortableContext for drag & drop */}
+      <div 
+        className="flex-shrink-0 bg-white z-10 border-r border-notion-borderLight" 
+        style={{ width: `${SIDEBAR_WIDTH_MOBILE_VIEW}px` }}
+      >
+        <SortableContext
+          items={timezoneData.map((data) => data.city.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {timezoneData.map((data) => (
+            <div 
               key={data.city.id}
-              style={{ height: `${MOBILE_ROW_HEIGHT}px` }}
-              className="p-3 border-b border-notion-borderLight flex flex-col justify-between"
+              className="border-b border-[#F0F0F0]"
+              style={{ minHeight: '80px', height: '80px' }}
             >
-              {/* Top: Icon/Offset + City name */}
-              <div className="flex items-center gap-2 mb-1">
-                {data.isReference ? (
-                  <svg 
-                    className="w-4 h-4 flex-shrink-0 text-notion-textLight" 
-                    viewBox="0 0 24 24" 
-                    fill="currentColor"
-                    aria-label="Home city"
-                  >
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                  </svg>
-                ) : offsetDisplay ? (
-                  <span className="text-xs font-medium text-notion-accent bg-notion-accentLight px-1.5 py-0.5 rounded-full flex-shrink-0">
-                    {offsetDisplay}
-                  </span>
-                ) : null}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-notion-text text-sm truncate">
-                      {data.city.name}
-                    </span>
-                    <span className="text-xs text-notion-textLighter flex-shrink-0">
-                      {timezoneLabel}
-                    </span>
-                  </div>
-                  <span className="text-xs text-notion-textLighter truncate">
-                    {locationDisplay}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bottom: Current time + date */}
-              <div>
-                <div className="text-xl font-semibold text-notion-text tabular-nums leading-tight">
-                  {timeOnly}
-                </div>
-                <div className="text-xs text-notion-textLighter leading-tight mt-0.5">
-                  {data.formattedDate}
-                </div>
-              </div>
+              <SortableTimeZoneRow
+                data={data}
+                onRemove={() => onRemoveCity(data.city.id)}
+                t={t}
+                sidebarOnly={true}
+                sidebarWidth={SIDEBAR_WIDTH_MOBILE_VIEW}
+                hoveredColumnIndex={null}
+                isDesktop={false}
+              />
             </div>
-          );
-        })}
+          ))}
+        </SortableContext>
       </div>
 
       {/* RIGHT: Timeline - Scroll cùng nhau */}
@@ -127,11 +102,15 @@ export const MobileTimezoneView = ({
             return (
               <div
                 key={data.city.id}
-                className="h-[100px] flex items-end pb-2 border-b border-notion-borderLight relative"
-                style={{ marginTop: rowIndex === 0 ? `${DATE_HEADER_HEIGHT}px` : '0' }}
+                className="flex items-end border-b border-notion-borderLight relative"
+                style={{ 
+                  minHeight: '80px', 
+                  height: '80px',
+                  marginTop: rowIndex === 0 ? `${DATE_HEADER_HEIGHT}px` : '0' 
+                }}
               >
                 {/* Hour cells row */}
-                <div className="flex h-full items-end">
+                <div className="flex h-full items-end w-full">
                   {hours.map((slot) => (
                     <HourCell
                       key={slot.columnIndex}

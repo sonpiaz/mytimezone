@@ -40,14 +40,7 @@ export const DateNavigator = ({ selectedDate, onDateSelect, referenceTimezone }:
   };
 
   return (
-    <div className="flex items-center gap-1 mb-6">
-      {/* Calendar icon - không có hover effect */}
-      <div className="p-2 flex-shrink-0 cursor-default">
-        <svg className="w-5 h-5 text-notion-textLight" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      </div>
-
+    <div className="flex items-center gap-2 mb-6">
       {/* Date buttons - Notion-style pill buttons */}
       <div className="flex items-center gap-1 overflow-x-auto">
         {dates.map((date, index) => {
@@ -77,14 +70,14 @@ export const DateNavigator = ({ selectedDate, onDateSelect, referenceTimezone }:
               <button
                 onClick={() => handleDateClick(date)}
                 className={`
-                  relative flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                  relative flex-shrink-0 px-3 py-1 rounded-notion-md text-sm font-medium transition-all
                   ${isSelectedDate
                     ? weekend
-                      ? 'bg-notion-text text-red-300 ring-2 ring-red-400/50 shadow-notion-sm'  // Weekend + selected: text đỏ nhạt + ring đỏ
-                      : 'bg-notion-text text-white shadow-notion-sm'                               // Weekday + selected: text trắng
+                      ? 'bg-[#FEF9C3] text-red-500'  // Weekend + selected: background vàng nhạt, text đỏ
+                      : 'bg-[#FEF9C3] text-[#37352F]' // Weekday + selected: background vàng nhạt, text đen
                     : weekend
-                      ? 'text-red-400 hover:bg-red-50'                                             // Weekend + not selected
-                      : 'text-notion-textLight hover:bg-notion-hover'                              // Weekday + not selected
+                      ? 'text-red-400 hover:bg-gray-100'  // Weekend + not selected: text đỏ nhạt
+                      : 'text-[#6B6B6B] hover:bg-gray-100' // Weekday + not selected: text xám
                   }
                 `}
                 aria-label={`Select date ${date.toFormat('MMMM d, yyyy')}`}
