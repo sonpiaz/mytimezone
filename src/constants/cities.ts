@@ -2,9 +2,9 @@ import type { City } from '../types';
 
 export const CITIES: City[] = [
   // Americas
-  { id: 'sf', name: 'San Francisco', nameVi: 'San Francisco', country: 'USA', timezone: 'America/Los_Angeles', slug: 'san-francisco' },
-  { id: 'ny', name: 'New York', nameVi: 'New York', country: 'USA', timezone: 'America/New_York', slug: 'new-york' },
-  { id: 'chicago', name: 'Chicago', nameVi: 'Chicago', country: 'USA', timezone: 'America/Chicago', slug: 'chicago' },
+  { id: 'sf', name: 'San Francisco', nameVi: 'San Francisco', country: 'USA', state: 'California', timezone: 'America/Los_Angeles', slug: 'san-francisco' },
+  { id: 'ny', name: 'New York', nameVi: 'New York', country: 'USA', state: 'New York', timezone: 'America/New_York', slug: 'new-york' },
+  { id: 'chicago', name: 'Chicago', nameVi: 'Chicago', country: 'USA', state: 'Illinois', timezone: 'America/Chicago', slug: 'chicago' },
   { id: 'toronto', name: 'Toronto', nameVi: 'Toronto', country: 'Canada', timezone: 'America/Toronto', slug: 'toronto' },
   { id: 'mexico', name: 'Mexico City', nameVi: 'Thành phố Mexico', country: 'Mexico', timezone: 'America/Mexico_City', slug: 'mexico-city' },
   { id: 'sao-paulo', name: 'São Paulo', nameVi: 'São Paulo', country: 'Brazil', timezone: 'America/Sao_Paulo', slug: 'sao-paulo' },
