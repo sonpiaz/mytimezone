@@ -194,23 +194,28 @@ function App() {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {/* Language Switcher - Minimal */}
+              <button
+                onClick={toggleLanguage}
+                className="px-2 py-1.5 text-xs text-[#6B6B6B] hover:bg-[rgba(55,53,47,0.08)] rounded transition-colors font-normal"
+                aria-label={t('language')}
+              >
+                {language === 'vi' ? 'VI' : 'EN'}
+              </button>
+              
+              {/* Share Button - Ghost style */}
+              <ShareButton t={t} />
+              
+              {/* Find Best Time - Primary CTA */}
               {cities.length >= 2 && (
                 <button
                   onClick={() => setShowScheduler(true)}
-                  className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-[#191919] text-white rounded-md hover:bg-[#333333] flex items-center gap-1.5 transition-colors font-medium"
                 >
-                  <span>🎯</span>
+                  <span className="text-xs">✨</span>
                   <span className="hidden sm:inline">{t('findBestTime')}</span>
                 </button>
               )}
-              <button
-                onClick={toggleLanguage}
-                className="px-3 py-1.5 text-sm text-notion-textLight hover:bg-notion-hover rounded-lg transition-notion"
-                aria-label={t('language')}
-              >
-                {language === 'vi' ? 'EN' : 'VI'}
-              </button>
-              <ShareButton t={t} />
             </div>
           </div>
         </div>

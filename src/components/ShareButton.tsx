@@ -39,22 +39,23 @@ export const ShareButton = ({ t }: ShareButtonProps) => {
   return (
     <button
       onClick={handleShare}
-      className="px-4 py-2 bg-white text-notion-text border border-[#E3E3E3] rounded-notion-md font-medium hover:bg-[#F7F6F3] hover:border-[#D3D3D3] transition-all duration-150 flex items-center gap-2"
+      className="px-2.5 py-1.5 text-sm bg-transparent text-[#37352F] hover:bg-[rgba(55,53,47,0.08)] rounded transition-colors font-normal flex items-center gap-1.5"
+      title={copied ? t('copied') : t('shareView') || 'Share View'}
     >
       <svg
         className="w-4 h-4"
         fill="none"
         stroke="currentColor"
+        strokeWidth={2}
         viewBox="0 0 24 24"
       >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+          d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
         />
       </svg>
-      {copied ? t('copied') : t('shareView') || 'Share View'}
+      <span className="hidden sm:inline">{copied ? t('copied') : t('shareView') || 'Share'}</span>
     </button>
   );
 };
