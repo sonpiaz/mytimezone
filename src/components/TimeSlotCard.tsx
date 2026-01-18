@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { TimeSlot } from '../types/meetingScheduler';
 import { generateGoogleCalendarUrl, generateMeetingLink } from '../utils/meetingScheduler';
 import { useTranslation } from '../hooks/useTranslation';
@@ -10,18 +11,21 @@ interface TimeSlotCardProps {
   duration: number;
   referenceTimezone: string;
   isLast?: boolean; // Để ẩn divider ở card cuối cùng
+  isFirst?: boolean; // Để style primary button cho slot đầu tiên
 }
 
 export const TimeSlotCard = ({ 
   slot, 
-  variant, 
+  variant: _variant, 
   onCopy,
   selectedDate,
   duration,
   referenceTimezone,
   isLast = false,
+  isFirst = false,
 }: TimeSlotCardProps) => {
   const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
 
   const addToCalendar = () => {
     const url = generateGoogleCalendarUrl(slot);
@@ -36,12 +40,22 @@ export const TimeSlotCard = ({
       referenceTimezone
     );
     navigator.clipboard.writeText(meetingUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
     // onCopy will show toast: "Meeting link copied! Share with participants"
     onCopy?.();
   };
 
   return (
     <div className="py-4">
+      {/* Best badge for first slot */}
+      {isFirst && (
+        <div className="mb-3 inline-flex items-center gap-1.5 px-2 py-1 bg-[#ECFDF5] text-[#059669] rounded-md text-xs font-medium">
+          <span>✨</span>
+          <span>{t('best') || 'Best'}</span>
+        </div>
+      )}
+      
       {/* Time for each participant */}
       <div className="space-y-2 mb-3">
         {slot.participants.map((p, idx) => {
@@ -63,35 +77,48 @@ export const TimeSlotCard = ({
         })}
       </div>
 
-      {/* Sacrifice summary */}
-      {variant === 'sacrifice' && slot.sacrificeParticipants.length > 0 && (
-        <div className="mb-3 py-2 px-3 bg-[#F7F6F3] rounded-notion-md text-sm text-[#37352F]">
-          <p className="text-xs leading-relaxed">
-            <span className="font-medium">{slot.sacrificeParticipants.map(c => c.name).join(', ')}</span>{' '}
-            {t('outsideWorkingHours')}
-          </p>
-        </div>
-      )}
 
       {/* Action buttons */}
       <div className="flex gap-3 mt-4">
+        {/* Schedule button - Primary for first slot, Ghost for others */}
         <button
           onClick={addToCalendar}
-          className="flex-1 py-2.5 text-xs font-medium bg-[#37352F] text-white rounded-notion-md hover:bg-[#5A5A5A] transition-all duration-150 flex items-center justify-center gap-1.5"
+          className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            isFirst
+              ? 'bg-[#191919] text-white hover:bg-[#333333]'
+              : 'bg-transparent text-[#37352F] border border-[#E5E5E5] hover:bg-[#F7F7F5] hover:border-[#D1D1D1]'
+          }`}
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           {t('schedule')}
         </button>
+        
+        {/* Share Meeting button - với feedback khi copy */}
         <button
           onClick={shareLink}
-          className="flex-1 py-2.5 text-xs font-medium bg-white text-notion-text border border-[#E3E3E3] rounded-notion-md hover:bg-[#F7F6F3] hover:border-[#D3D3D3] transition-all duration-150 flex items-center justify-center gap-1.5"
+          className={`flex-1 py-2.5 text-sm font-medium bg-transparent border rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            copied
+              ? 'text-[#059669] border-[#10B981] bg-[#ECFDF5]'
+              : 'text-[#37352F] border-[#E5E5E5] hover:bg-[#F7F7F5] hover:border-[#D1D1D1]'
+          }`}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-          </svg>
-          {t('shareMeeting')}
+          {copied ? (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {t('copied') || 'Copied!'}
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              {t('shareMeeting')}
+            </>
+          )}
         </button>
       </div>
       

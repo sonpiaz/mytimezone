@@ -27,6 +27,7 @@ export const translations: Record<Language, Record<string, string>> = {
     findBestTimes: 'Tìm Giờ Tốt Nhất',
     schedule: 'Lên Lịch',
     shareMeeting: 'Chia Sẻ Cuộc Họp',
+    best: 'Tốt Nhất',
     outsideWorkingHours: 'sẽ họp ngoài giờ làm việc',
     outsideWorkingHoursSingle: 'sẽ họp ngoài giờ làm việc',
     showingTopSlots: 'Hiển thị {count} trong {total} khung giờ',
@@ -48,7 +49,6 @@ export const translations: Record<Language, Record<string, string>> = {
     cityRemoved: 'Đã xóa thành phố',
     errorAddingCity: 'Lỗi khi thêm thành phố',
     errorRemovingCity: 'Lỗi khi xóa thành phố',
-    copied: 'Đã sao chép!',
     
     // Common
     remove: 'Xóa',
@@ -84,6 +84,7 @@ export const translations: Record<Language, Record<string, string>> = {
     findBestTimes: 'Find Best Times',
     schedule: 'Schedule',
     shareMeeting: 'Share Meeting',
+    best: 'Best',
     outsideWorkingHours: 'will meet outside working hours',
     outsideWorkingHoursSingle: 'will meet outside working hours',
     showingTopSlots: 'Showing top {count} of {total} slots',

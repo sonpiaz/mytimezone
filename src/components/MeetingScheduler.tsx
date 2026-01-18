@@ -117,12 +117,10 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
                   }}
                   title={p.isHost ? 'Host (right-click to change)' : 'Right-click to set as host'}
                   className={`
-                    px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-notion
+                    px-3 py-1.5 rounded-md text-sm flex items-center gap-1.5 transition-all duration-150
                     ${p.isSelected
-                      ? p.isHost
-                        ? 'bg-[#37352F] text-white'
-                        : 'bg-white text-[#37352F] border border-[#E3E3E3] hover:bg-[#F7F6F3] hover:border-[#D3D3D3]'
-                      : 'bg-white text-[#37352F] border border-[#E3E3E3] hover:bg-[#F7F6F3]'
+                      ? 'bg-[#F7F7F5] text-[#37352F] border border-[#37352F] hover:bg-[#F7F7F5]'
+                      : 'bg-transparent text-[#37352F] border border-[#E5E5E5] hover:bg-[#F7F7F5]'
                     }
                   `}
                 >
@@ -179,10 +177,10 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
                   key={d}
                   onClick={() => setDuration(d)}
                   className={`
-                    px-4 py-2 rounded-notion-md text-sm font-medium transition-all duration-150
+                    px-4 py-2 rounded-md text-sm font-medium transition-all duration-150
                     ${duration === d
-                      ? 'bg-[#37352F] text-white'
-                      : 'bg-white text-[#37352F] border border-[#E3E3E3] hover:bg-[#F7F6F3] hover:border-[#D3D3D3]'
+                      ? 'bg-[#F7F7F5] text-[#37352F] border border-[#37352F]'
+                      : 'bg-transparent text-[#6B7280] border border-[#E5E5E5] hover:bg-[#F7F7F5]'
                     }
                   `}
                 >
@@ -210,11 +208,12 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
             onClick={handleFindTimes}
             disabled={selectedCount < 2}
             className={`
-              w-full py-3 bg-[#37352F] text-white rounded-notion-md font-medium 
+              w-full py-3 bg-[#191919] text-white rounded-lg font-medium 
               flex items-center justify-center gap-2 transition-all duration-150
+              shadow-sm
               ${selectedCount < 2
                 ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-[#5A5A5A]'
+                : 'hover:bg-[#333333] hover:shadow-md hover:-translate-y-0.5 active:translate-y-0'
               }
             `}
           >

@@ -46,6 +46,7 @@ export const ResultSection = ({
             duration={duration}
             referenceTimezone={referenceTimezone}
             isLast={index === topSlots.length - 1}
+            isFirst={index === 0}
           />
         ))}
         {slots.length > 5 && (
