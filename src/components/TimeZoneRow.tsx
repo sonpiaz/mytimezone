@@ -34,6 +34,7 @@ interface TimeZoneRowProps {
   isReference?: boolean;
   sidebarOnly?: boolean;
   timelineOnly?: boolean;
+  fullRow?: boolean; // New: render full row with responsive layout
   columnWidth?: number;
   sidebarWidth?: number;
   hoveredColumnIndex?: number | null;
@@ -49,6 +50,7 @@ export const TimeZoneRow = ({
   isReference = false,
   sidebarOnly = false,
   timelineOnly = false,
+  fullRow = false,
   columnWidth = 60,
   sidebarWidth = 256,
   hoveredColumnIndex = null,
@@ -258,6 +260,215 @@ export const TimeZoneRow = ({
     );
   }
 
-  // Full row (fallback - should not be used with new structure)
+  // Full row - Responsive layout: stacked on mobile, side-by-side on desktop
+  if (fullRow) {
+    // Format offset display (+15, +8, -6, etc.)
+    const offsetDisplay = data.offsetFromReference !== undefined && data.offsetFromReference !== 0
+      ? `${data.offsetFromReference >= 0 ? '+' : ''}${data.offsetFromReference}`
+      : null;
+
+    // Extract time and date from formattedTime (now 24h format: "21:33")
+    const timeOnly = formattedTime.split(' ')[0]; // e.g., "21:33"
+
+    // Find current hour column index
+    const currentHourColumn = hours.findIndex(h => h.isCurrentHour);
+    const activeColumn = hoveredColumnIndex !== null ? hoveredColumnIndex : currentHourColumn;
+    const isHovered = hoveredColumnIndex !== null;
+
+    return (
+      <div
+        ref={rowRef}
+        data-timezone-row
+        className={`group bg-white rounded-xl border border-notion-border mb-3 overflow-hidden hover:shadow-notion-md transition-notion timezone-row relative ${
+          isDragging ? 'cursor-grabbing opacity-50' : ''
+        }`}
+      >
+        {/* Mobile: flex-col (stacked), Desktop: flex-row (side-by-side) */}
+        <div className="flex flex-col md:flex-row">
+          {/* City Info Section - Full width on mobile, fixed width on desktop */}
+          <div className="
+            w-full
+            md:w-[320px]
+            md:flex-shrink-0
+            p-4
+            border-b border-notion-borderLight
+            md:border-b-0 md:border-r
+          ">
+            <div className="flex items-center justify-between">
+              {/* Left: drag handle + icon/offset + city info */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Drag Handle */}
+                {dragHandleProps && (
+                  <div
+                    {...dragHandleProps}
+                    className="cursor-grab active:cursor-grabbing text-notion-textPlaceholder hover:text-notion-textLight transition-colors flex-shrink-0"
+                    aria-label="Drag to reorder"
+                  >
+                    <svg width="10" height="14" viewBox="0 0 12 16" fill="currentColor">
+                      <circle cx="3" cy="4" r="1.5" />
+                      <circle cx="9" cy="4" r="1.5" />
+                      <circle cx="3" cy="8" r="1.5" />
+                      <circle cx="9" cy="8" r="1.5" />
+                      <circle cx="3" cy="12" r="1.5" />
+                      <circle cx="9" cy="12" r="1.5" />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Home icon OR offset badge */}
+                {isReference ? (
+                  <svg 
+                    className="w-4 h-4 flex-shrink-0 text-notion-textLight" 
+                    viewBox="0 0 24 24" 
+                    fill="currentColor"
+                    aria-label="Home city"
+                  >
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                  </svg>
+                ) : offsetDisplay ? (
+                  <span className="text-xs font-medium text-notion-accent bg-notion-accentLight px-2 py-0.5 rounded-full flex-shrink-0">
+                    {offsetDisplay}
+                  </span>
+                ) : null}
+
+                {/* City + Country */}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-notion-text text-sm truncate">
+                      {city.name}
+                    </span>
+                    <span className="text-xs text-notion-textLighter flex-shrink-0">
+                      {timezoneLabel}
+                    </span>
+                  </div>
+                  <span className="text-xs text-notion-textLighter truncate mt-0.5">
+                    {locationDisplay}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Right: current time + date */}
+              <div className="text-right flex-shrink-0 ml-4">
+                <div className="text-xl font-semibold text-notion-text whitespace-nowrap leading-tight tabular-nums">
+                  {timeOnly}
+                </div>
+                <div className="text-xs text-notion-textLighter whitespace-nowrap leading-tight mt-0.5">
+                  {formattedDate}
+                </div>
+              </div>
+
+              {/* Remove button - appears on hover */}
+              <button
+                onClick={onRemove}
+                className="opacity-0 group-hover:opacity-100 text-notion-textPlaceholder hover:text-notion-textLight hover:bg-notion-hover p-1 rounded-md transition-all ml-2 flex-shrink-0"
+                aria-label={t('remove')}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Timeline Section - Full width on mobile, scrollable */}
+          <div 
+            className="w-full md:flex-1 overflow-x-auto"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            <div className="flex flex-col flex-shrink-0 min-w-max">
+              {/* Date Labels Row (empty - labels in hour 0 cell) */}
+              <div className="flex h-6 text-xs text-notion-textLight border-b border-notion-borderLight">
+                {hours.map((slot) => (
+                  <div
+                    key={`date-${slot.columnIndex}`}
+                    className="flex flex-col items-center justify-end flex-shrink-0"
+                    style={{
+                      width: `${columnWidth}px`,
+                      minWidth: `${columnWidth}px`,
+                      maxWidth: `${columnWidth}px`,
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {/* Hour Numbers Row */}
+              <div className={`flex flex-shrink-0 ${isDesktop ? 'h-14' : 'h-16'}`}>
+                <div className="flex-1 flex items-center">
+                  <div
+                    className="flex min-w-max relative h-full"
+                    data-hours-grid
+                  >
+                    {hours.map((slot) => {
+                      const isHovered = hoveredColumnIndex === slot.columnIndex;
+                      const isMidnight = slot.localHour === 0;
+                      
+                      return (
+                        <div
+                          key={slot.columnIndex}
+                          className={`
+                            h-full flex items-center justify-center
+                            border-r border-notion-borderLight cursor-pointer transition-notion relative z-10
+                            ${getTimeOfDayStyle(slot.localHour, slot.isCurrentHour, isHovered)}
+                            hover:bg-notion-hover
+                          `}
+                          style={{
+                            width: `${columnWidth}px`,
+                            minWidth: `${columnWidth}px`,
+                            maxWidth: `${columnWidth}px`,
+                            flexShrink: 0,
+                            height: isDesktop ? '56px' : '64px',
+                          }}
+                        >
+                          <div className="text-center">
+                            {isMidnight && slot.dayName && slot.dateLabel ? (
+                              <div className="flex flex-col items-center justify-center leading-tight">
+                                <span className="text-[10px] text-notion-textLight leading-none font-medium uppercase">
+                                  {slot.dayName}
+                                </span>
+                                <span className="text-[10px] text-notion-textLighter leading-none mt-0.5 uppercase">
+                                  {slot.dateLabel}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="font-medium leading-none text-sm text-notion-text tabular-nums">
+                                {slot.localHour}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Current Time Line - Mobile only (for fullRow mode) */}
+            {activeColumn !== -1 && activeColumn !== null && (
+              <div
+                className="absolute pointer-events-none z-20 transition-notion"
+                style={{
+                  left: `${activeColumn * columnWidth}px`,
+                  top: '24px', // After date header
+                  width: `${columnWidth}px`,
+                  height: isDesktop ? '56px' : '64px',
+                  borderLeft: `2px solid ${isHovered ? '#2F81F7' : '#D0D0D0'}`,
+                  borderRight: `2px solid ${isHovered ? '#2F81F7' : '#D0D0D0'}`,
+                  boxSizing: 'border-box',
+                }}
+                aria-hidden="true"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback - should not be used
   return null;
 };

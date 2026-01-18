@@ -9,6 +9,7 @@ interface SortableTimeZoneRowProps {
   t: (key: string) => string;
   sidebarOnly?: boolean;
   timelineOnly?: boolean;
+  fullRow?: boolean;
   columnWidth?: number;
   sidebarWidth?: number;
   hoveredColumnIndex?: number | null;
@@ -21,6 +22,7 @@ export const SortableTimeZoneRow = ({
   t,
   sidebarOnly = false,
   timelineOnly = false,
+  fullRow = false,
   columnWidth = 60,
   sidebarWidth = 256,
   hoveredColumnIndex = null,
@@ -52,6 +54,7 @@ export const SortableTimeZoneRow = ({
         isReference={data.isReference}
         sidebarOnly={sidebarOnly}
         timelineOnly={timelineOnly}
+        fullRow={fullRow}
         columnWidth={columnWidth}
         sidebarWidth={sidebarWidth}
         hoveredColumnIndex={hoveredColumnIndex}

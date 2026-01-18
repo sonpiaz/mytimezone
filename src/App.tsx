@@ -181,52 +181,68 @@ function App() {
                   items={timezoneData.map((data) => data.city.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {timezoneData.map((data) => (
-                    <div key={data.city.id} className="flex w-full min-w-max">
-                      {/* Sidebar - Fixed, sticky on mobile */}
-                      <div 
-                        className={`flex-shrink-0 bg-white ${!isDesktop ? 'sticky left-0 z-30 border-r border-notion-borderLight' : 'z-10'}`}
-                        style={{ 
-                          width: `${sidebarWidth}px`, 
-                          minWidth: `${sidebarWidth}px`,
-                          boxShadow: !isDesktop ? '2px 0 8px rgba(0,0,0,0.05)' : 'none',
-                        }}
-                      >
-                        <SortableTimeZoneRow
-                          data={data}
-                          onRemove={() => handleRemoveCity(data.city.id)}
-                          t={t}
-                          sidebarOnly={true}
-                          sidebarWidth={sidebarWidth}
-                          hoveredColumnIndex={null}
-                          isDesktop={isDesktop}
-                        />
+                  {isDesktop ? (
+                    // Desktop: Side-by-side layout (existing)
+                    timezoneData.map((data) => (
+                      <div key={data.city.id} className="flex w-full min-w-max">
+                        {/* Sidebar - Fixed */}
+                        <div 
+                          className="flex-shrink-0 bg-white z-10"
+                          style={{ 
+                            width: `${sidebarWidth}px`, 
+                            minWidth: `${sidebarWidth}px`,
+                          }}
+                        >
+                          <SortableTimeZoneRow
+                            data={data}
+                            onRemove={() => handleRemoveCity(data.city.id)}
+                            t={t}
+                            sidebarOnly={true}
+                            sidebarWidth={sidebarWidth}
+                            hoveredColumnIndex={null}
+                            isDesktop={isDesktop}
+                          />
+                        </div>
+                        
+                        {/* Timeline */}
+                        <div 
+                          className="flex-shrink-0"
+                          style={{
+                            minWidth: `${24 * columnWidth}px`,
+                            width: `${24 * columnWidth}px`,
+                          }}
+                        >
+                          <SortableTimeZoneRow
+                            data={data}
+                            onRemove={() => handleRemoveCity(data.city.id)}
+                            t={t}
+                            timelineOnly={true}
+                            columnWidth={columnWidth}
+                            hoveredColumnIndex={hoveredColumnIndex}
+                            isDesktop={isDesktop}
+                          />
+                        </div>
                       </div>
-                      
-                      {/* Timeline - No overflow, scroll handled by parent */}
-                      <div 
-                        className="flex-shrink-0"
-                        style={{
-                          minWidth: `${24 * columnWidth}px`,
-                          width: `${24 * columnWidth}px`,
-                        }}
-                      >
-                        <SortableTimeZoneRow
-                          data={data}
-                          onRemove={() => handleRemoveCity(data.city.id)}
-                          t={t}
-                          timelineOnly={true}
-                          columnWidth={columnWidth}
-                          hoveredColumnIndex={hoveredColumnIndex}
-                          isDesktop={isDesktop}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    // Mobile: Stacked layout (new)
+                    timezoneData.map((data) => (
+                      <SortableTimeZoneRow
+                        key={data.city.id}
+                        data={data}
+                        onRemove={() => handleRemoveCity(data.city.id)}
+                        t={t}
+                        fullRow={true}
+                        columnWidth={columnWidth}
+                        hoveredColumnIndex={hoveredColumnIndex}
+                        isDesktop={isDesktop}
+                      />
+                    ))
+                  )}
                 </SortableContext>
                 
                 {/* Current Time Line - Solid border indicator (positioned relative to scroll container) */}
-                {timezoneData.length > 0 && currentHourColumn !== null && (
+                {timezoneData.length > 0 && currentHourColumn !== null && isDesktop && (
                   <CurrentTimeLine
                     timezoneData={timezoneData}
                     currentHourColumn={currentHourColumn}

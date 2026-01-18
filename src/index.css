@@ -97,3 +97,15 @@
     scrollbar-color: #888 #f1f1f1;
   }
 }
+
+/* Hide scrollbar for mobile timeline */
+@media (max-width: 640px) {
+  [data-timezone-row] [data-hours-grid] {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  [data-timezone-row] [data-hours-grid]::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
