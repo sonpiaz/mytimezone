@@ -12,8 +12,8 @@ declare global {
 }
 
 export const FeedbackButton = ({ t }: FeedbackButtonProps) => {
-  // Replace 'YOUR_FORM_ID' with your actual Tally form ID
-  const TALLY_FORM_ID = 'YOUR_FORM_ID';
+  // Tally form ID: https://tally.so/r/2EAzEp
+  const TALLY_FORM_ID = '2EAzEp';
 
   const openFeedback = () => {
     if (window.Tally) {
