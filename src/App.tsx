@@ -19,8 +19,10 @@ import { useTimezones } from './hooks/useTimezones';
 import { useTranslation } from './hooks/useTranslation';
 import { useHoveredHour } from './hooks/useHoveredHour';
 import { useTimelineLayout } from './hooks/useTimelineLayout';
+import { useMediaQuery } from './hooks/useMediaQuery';
 import { SortableTimeZoneRow } from './components/SortableTimeZoneRow';
 import { CurrentTimeLine } from './components/CurrentTimeLine';
+import { MobileTimezoneView } from './components/MobileTimezoneView';
 import { CityPicker } from './components/CityPicker';
 import { DateNavigator } from './components/DateNavigator';
 import { ShareButton } from './components/ShareButton';
@@ -36,6 +38,7 @@ function App() {
   const timelineLayout = useTimelineLayout();
   const { columnWidth, isDesktop, sidebarWidth } = timelineLayout;
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width: 640px)');
   
   // Get reference timezone for DateNavigator
   const referenceTimezone = cities.length > 0 ? cities[0].timezone : 'America/Los_Angeles';
@@ -70,16 +73,14 @@ function App() {
     }
   };
 
-  // Auto-scroll to current time on mobile (optional - can be enabled if needed)
+  // Auto-scroll to current time on mobile
   useEffect(() => {
     if (!isDesktop && containerRef.current && currentHourColumn !== null && timezoneData.length > 0) {
-      // Optional: Auto-scroll to current time on mobile
-      // Uncomment if you want this behavior:
-      // const scrollPosition = currentHourColumn * columnWidth - (window.innerWidth / 2) + sidebarWidth;
-      // containerRef.current.scrollTo({
-      //   left: Math.max(0, scrollPosition),
-      //   behavior: 'smooth',
-      // });
+      const scrollPosition = currentHourColumn * columnWidth - (window.innerWidth / 2) + sidebarWidth;
+      containerRef.current.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth',
+      });
     }
   }, [isDesktop, currentHourColumn, columnWidth, sidebarWidth, timezoneData.length]);
 
@@ -134,12 +135,44 @@ function App() {
           />
         </div>
 
-        {/* Timezone Rows - Desktop layout for all screen sizes with horizontal scroll */}
+        {/* Timezone Rows */}
         {timezoneData.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-notion-textLight">{t('noCities')}</p>
           </div>
+        ) : isMobile ? (
+          // Mobile: Single scroll container layout
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div 
+              className="relative w-full"
+              data-timezone-container
+              onMouseMove={(e) => {
+                const target = e.target as HTMLElement;
+                const grid = target.closest('[data-hours-grid]');
+                if (grid) {
+                  const gridRect = grid.getBoundingClientRect();
+                  const mouseX = e.clientX - gridRect.left;
+                  const columnIndex = Math.floor(mouseX / columnWidth);
+                  const clampedColumnIndex = Math.max(0, Math.min(23, columnIndex));
+                  handleMouseMove(mouseX, clampedColumnIndex);
+                }
+              }}
+              onMouseLeave={handleColumnLeave}
+            >
+              <MobileTimezoneView
+                timezoneData={timezoneData}
+                currentHourColumn={currentHourColumn}
+                hoveredColumnIndex={hoveredColumnIndex}
+                columnWidth={columnWidth}
+              />
+            </div>
+          </DndContext>
         ) : (
+          // Desktop: Side-by-side layout
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -183,13 +216,12 @@ function App() {
                   >
                     {timezoneData.map((data) => (
                       <div key={data.city.id} className="flex w-full min-w-max">
-                        {/* Sidebar - Fixed, sticky on mobile */}
+                        {/* Sidebar - Fixed */}
                         <div 
-                          className={`flex-shrink-0 bg-white ${!isDesktop ? 'sticky left-0 z-30 border-r border-notion-borderLight' : 'z-10'}`}
+                          className="flex-shrink-0 bg-white z-10"
                           style={{ 
                             width: `${sidebarWidth}px`, 
                             minWidth: `${sidebarWidth}px`,
-                            boxShadow: !isDesktop ? '2px 0 8px rgba(0,0,0,0.05)' : 'none',
                           }}
                         >
                           <SortableTimeZoneRow
@@ -203,7 +235,7 @@ function App() {
                           />
                         </div>
                         
-                        {/* Timeline - Scrollable */}
+                        {/* Timeline */}
                         <div 
                           className="flex-shrink-0"
                           style={{
@@ -225,7 +257,7 @@ function App() {
                     ))}
                   </SortableContext>
                   
-                  {/* Current Time Line - All screen sizes */}
+                  {/* Current Time Line - Desktop only */}
                   {timezoneData.length > 0 && currentHourColumn !== null && (
                     <CurrentTimeLine
                       timezoneData={timezoneData}
