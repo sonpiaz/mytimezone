@@ -7,15 +7,11 @@ interface TimeZoneRowProps {
   t: (key: string) => string;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   isDragging?: boolean;
-  onColumnHover?: (columnIndex: number) => void;
-  onMouseMove?: (mouseX: number, columnIndex: number) => void;
-  onColumnLeave?: () => void;
   isReference?: boolean;
   sidebarOnly?: boolean;
   timelineOnly?: boolean;
   columnWidth?: number;
   sidebarWidth?: number;
-  hoveredColumnIndex?: number | null;
 }
 
 export const TimeZoneRow = ({
@@ -24,15 +20,11 @@ export const TimeZoneRow = ({
   t,
   dragHandleProps,
   isDragging = false,
-  onColumnHover,
-  onMouseMove,
-  onColumnLeave,
   isReference = false,
   sidebarOnly = false,
   timelineOnly = false,
   columnWidth = 60,
   sidebarWidth = 256,
-  hoveredColumnIndex = null,
 }: TimeZoneRowProps) => {
   const { city, gmtOffset, formattedTime, formattedDate, timezoneAbbr, hours } = data;
   const rowRef = useRef<HTMLDivElement>(null);
@@ -47,6 +39,14 @@ export const TimeZoneRow = ({
 
   // Sidebar only (for fixed left column)
   if (sidebarOnly) {
+    // Format offset display (+15, +8, -6, etc.)
+    const offsetDisplay = data.offsetFromReference !== undefined && data.offsetFromReference !== 0
+      ? `${data.offsetFromReference >= 0 ? '+' : ''}${data.offsetFromReference}`
+      : null;
+
+    // Extract time and date from formattedTime
+    const timeOnly = formattedTime.split(' ')[0]; // e.g., "8:34p"
+    
     return (
       <div
         ref={rowRef}
@@ -55,74 +55,81 @@ export const TimeZoneRow = ({
           isDragging ? 'cursor-grabbing' : ''
         }`}
       >
-        <div className="flex h-24 flex-shrink-0">
-          {/* Left Side - City Info & Time */}
+        <div className="flex h-14 flex-shrink-0 items-center">
+          {/* Compact single-line layout */}
           <div 
-            className="flex-shrink-0 flex items-center gap-3 pr-4 border-r border-apple-border p-4"
+            className="flex-shrink-0 flex items-center justify-between w-full px-3 border-r border-apple-border"
             style={{ width: `${sidebarWidth}px` }}
           >
-            {/* Left: Drag Handle */}
-            {dragHandleProps && (
-              <div
-                {...dragHandleProps}
-                className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label="Drag to reorder"
-              >
-                <svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor">
-                  <circle cx="3" cy="4" r="1.5" />
-                  <circle cx="9" cy="4" r="1.5" />
-                  <circle cx="3" cy="10" r="1.5" />
-                  <circle cx="9" cy="10" r="1.5" />
-                  <circle cx="3" cy="16" r="1.5" />
-                  <circle cx="9" cy="16" r="1.5" />
-                </svg>
-              </div>
-            )}
+            {/* Left side - City info */}
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              {/* Drag Handle */}
+              {dragHandleProps && (
+                <div
+                  {...dragHandleProps}
+                  className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                  aria-label="Drag to reorder"
+                >
+                  <svg width="10" height="14" viewBox="0 0 12 16" fill="currentColor">
+                    <circle cx="3" cy="4" r="1.5" />
+                    <circle cx="9" cy="4" r="1.5" />
+                    <circle cx="3" cy="8" r="1.5" />
+                    <circle cx="9" cy="8" r="1.5" />
+                    <circle cx="3" cy="12" r="1.5" />
+                    <circle cx="9" cy="12" r="1.5" />
+                  </svg>
+                </div>
+              )}
 
-            {/* Middle: City info */}
-            <div className="flex-1 min-w-0">
-              {/* Top row: GMT offset + home icon */}
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs text-gray-500 font-medium">
-                  {timezoneLabel}
+              {/* Home icon OR offset number */}
+              {isReference ? (
+                <span className="text-sm flex-shrink-0">🏠</span>
+              ) : offsetDisplay ? (
+                <span className="text-[10px] text-blue-600 font-medium w-7 flex-shrink-0">
+                  {offsetDisplay}
                 </span>
-                {isReference && (
-                  <span className="text-sm">🏠</span>
-                )}
-              </div>
-              
-              {/* City name - Large and bold */}
-              <h3 className="text-base font-semibold text-gray-900 leading-tight">
+              ) : null}
+
+              {/* City name */}
+              <span className="font-semibold text-gray-900 text-sm whitespace-nowrap">
                 {city.name}
-              </h3>
-              
-              {/* Country/State - Small and gray */}
-              <p className="text-xs text-gray-500 mt-0.5">
+              </span>
+
+              {/* Timezone badge */}
+              <span className="text-[10px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded flex-shrink-0">
+                {timezoneLabel}
+              </span>
+
+              {/* Separator */}
+              <span className="text-gray-300 flex-shrink-0 text-xs">·</span>
+
+              {/* Country/State */}
+              <span className="text-xs text-gray-500 truncate">
                 {locationDisplay}
-              </p>
+              </span>
             </div>
 
-            {/* Right: Current time display */}
-            <div className="text-right flex-shrink-0">
-              {/* Current time - Large */}
-              <div className="text-lg font-semibold text-gray-900 leading-tight">
-                {formattedTime.split(' ')[0]}
-              </div>
-              
-              {/* Day and date - Small, blue */}
-              <div className="text-xs text-blue-600 mt-0.5">
+            {/* Right side - Time */}
+            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+              {/* Current time - large */}
+              <span className="text-lg font-semibold text-gray-900 whitespace-nowrap">
+                {timeOnly}
+              </span>
+
+              {/* Date - smaller */}
+              <span className="text-xs text-gray-500 whitespace-nowrap">
                 {formattedDate}
-              </div>
+              </span>
+
+              {/* Remove button */}
+              <button
+                onClick={onRemove}
+                className="text-gray-400 hover:text-red-500 transition-colors text-lg leading-none ml-0.5 flex-shrink-0"
+                aria-label={t('remove')}
+              >
+                ×
+              </button>
             </div>
-            
-            {/* Far right: Remove button */}
-            <button
-              onClick={onRemove}
-              className="text-gray-400 hover:text-red-600 transition-colors ml-2 text-xl leading-none"
-              aria-label={t('remove')}
-            >
-              ×
-            </button>
           </div>
         </div>
       </div>
@@ -139,48 +146,30 @@ export const TimeZoneRow = ({
           isDragging ? 'cursor-grabbing' : ''
         }`}
       >
-        <div className="flex h-24 flex-shrink-0">
+        <div className="flex h-14 flex-shrink-0">
           <div className="flex-1 flex items-center">
             <div
-              onMouseMove={(e) => {
-                if (!onMouseMove) return;
-                const gridRect = e.currentTarget.getBoundingClientRect();
-                const mouseX = e.clientX - gridRect.left;
-                const columnIndex = Math.floor(mouseX / columnWidth);
-                const clampedColumnIndex = Math.max(0, Math.min(23, columnIndex));
-                // Calculate position relative to container for hover line
-                const container = e.currentTarget.closest('[data-timezone-container]');
-                if (container) {
-                  const containerRect = (container as HTMLElement).getBoundingClientRect();
-                  const absoluteX = e.clientX - containerRect.left;
-                  onMouseMove(absoluteX, clampedColumnIndex);
-                }
-              }}
-              onMouseLeave={onColumnLeave}
               className="flex min-w-max relative h-full"
               data-hours-grid
             >
               {hours.map((slot) => {
                 // Simplified display: only hour number
                 // Font size adjusted for narrower columns (20-30px)
-                const fontSize = columnWidth >= 24 ? '13px' : '12px';
+                const fontSize = columnWidth >= 24 ? '12px' : '11px';
                 const showDateIndicator = columnWidth >= 24;
-                const isHovered = hoveredColumnIndex === slot.columnIndex;
                 
                 return (
                   <div
                     key={slot.columnIndex}
                     className={`
-                      h-full flex flex-col items-center justify-center
-                      border-r border-gray-200 cursor-pointer transition-all duration-200 relative z-10
+                      h-full flex items-center justify-center
+                      border-r-0 cursor-pointer transition-colors relative z-10 py-0.5
                       ${
                         slot.isCurrentHour
-                          ? 'bg-blue-500 text-white shadow-md rounded-lg'
-                          : isHovered && !slot.isCurrentHour
-                          ? 'bg-blue-100 rounded-lg shadow-sm'
+                          ? 'bg-blue-500 text-white shadow-md rounded'
                           : slot.isBusinessHour
                           ? 'bg-green-50 text-green-700'
-                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                          : 'bg-gray-50 text-gray-600'
                       }
                     `}
                     style={{
@@ -188,23 +177,23 @@ export const TimeZoneRow = ({
                       minWidth: `${columnWidth}px`,
                       maxWidth: `${columnWidth}px`,
                       flexShrink: 0,
+                      height: '56px',
                     }}
-                    onMouseEnter={() => onColumnHover?.(slot.columnIndex)}
                   >
                     <div className="text-center">
                       {/* Only hour number - simplified display */}
                       <div 
-                        className="font-medium leading-tight"
+                        className="font-medium leading-none"
                         style={{ fontSize }}
                       >
                         {slot.localHour}
                       </div>
                       {/* Date indicator - only show if column is wide enough */}
                       {showDateIndicator && slot.isNextDay && (
-                        <div className="text-[8px] text-gray-400 mt-0.5 leading-tight">+1d</div>
+                        <div className="text-[7px] text-gray-400 mt-0.5 leading-none">+1d</div>
                       )}
                       {showDateIndicator && slot.isPreviousDay && (
-                        <div className="text-[8px] text-gray-400 mt-0.5 leading-tight">-1d</div>
+                        <div className="text-[7px] text-gray-400 mt-0.5 leading-none">-1d</div>
                       )}
                     </div>
                   </div>

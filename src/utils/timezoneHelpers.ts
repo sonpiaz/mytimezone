@@ -53,6 +53,25 @@ export const getTimezoneAbbreviation = (timezone: string): string => {
 };
 
 /**
+ * Calculate hour offset between two timezones
+ * Returns positive number if target is ahead of reference
+ * Example: SF (GMT-8) to HCM (GMT+7) = +15 hours
+ */
+export const getTimezoneOffset = (targetTimezone: string, referenceTimezone: string): number => {
+  const targetTime = getCurrentTime(targetTimezone);
+  const referenceTime = getCurrentTime(referenceTimezone);
+  
+  // Get offset in minutes, convert to hours
+  const targetOffsetMinutes = targetTime.offset;
+  const referenceOffsetMinutes = referenceTime.offset;
+  
+  // Calculate difference in hours
+  const offsetHours = (targetOffsetMinutes - referenceOffsetMinutes) / 60;
+  
+  return Math.round(offsetHours);
+};
+
+/**
  * Generate 24 time slots based on reference timezone
  * Each column represents the SAME absolute moment in time
  * Other timezones show their LOCAL hour at that same moment
@@ -136,6 +155,9 @@ export const getTimeZoneData = (
   // Keep full formatted time for backward compatibility
   const fullFormattedTime = `${formattedTime} ${formattedDate}`;
 
+  // Calculate offset from reference timezone
+  const offsetFromReference = isReference ? 0 : getTimezoneOffset(city.timezone, referenceTimezone);
+
   return {
     city,
     currentTime: currentTime.toFormat('HH:mm:ss'),
@@ -146,5 +168,6 @@ export const getTimeZoneData = (
     timezoneAbbr,
     hours,
     isReference,
+    offsetFromReference,
   };
 };

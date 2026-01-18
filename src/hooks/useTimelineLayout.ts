@@ -17,7 +17,7 @@ export const useTimelineLayout = (): TimelineLayout => {
     const isDesktop = viewportWidth >= BREAKPOINT_DESKTOP;
     
     if (isDesktop) {
-      const sidebarWidth = 280;
+      const sidebarWidth = 320; // Increased for compact layout
       const padding = 64; // margins and padding
       const availableWidth = viewportWidth - sidebarWidth - padding;
       const calculatedWidth = Math.floor(availableWidth / 24);
@@ -34,7 +34,7 @@ export const useTimelineLayout = (): TimelineLayout => {
     return {
       columnWidth: MOBILE_COLUMN_WIDTH,
       isDesktop: false,
-      sidebarWidth: 256, // w-64 = 256px
+      sidebarWidth: 280, // Increased for compact layout
     };
   });
 
@@ -44,7 +44,7 @@ export const useTimelineLayout = (): TimelineLayout => {
       const isDesktop = viewportWidth >= BREAKPOINT_DESKTOP;
       
       if (isDesktop) {
-        const sidebarWidth = 280;
+        const sidebarWidth = 320; // Increased for compact layout
         const padding = 64; // margins and padding
         const availableWidth = viewportWidth - sidebarWidth - padding;
         const calculatedWidth = Math.floor(availableWidth / 24);
@@ -60,7 +60,7 @@ export const useTimelineLayout = (): TimelineLayout => {
         setLayout({
           columnWidth: MOBILE_COLUMN_WIDTH,
           isDesktop: false,
-          sidebarWidth: 256, // w-64 = 256px
+          sidebarWidth: 280, // Increased for compact layout
         });
       }
     };

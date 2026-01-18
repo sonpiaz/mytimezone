@@ -18,6 +18,7 @@ export interface TimeZoneData {
   timezoneAbbr: string; // e.g., "PST", "GMT", "CET"
   hours: HourData[];
   isReference: boolean; // True if this is the reference timezone
+  offsetFromReference?: number; // Hour offset from reference timezone (e.g., +15, +8, -6)
 }
 
 export interface HourData {
