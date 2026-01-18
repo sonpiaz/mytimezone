@@ -27,14 +27,14 @@ export const CurrentTimeLine = ({
   // No margin needed since sidebar and timeline are in same row now
   const leftPosition = sidebarWidth + (activeColumn * columnWidth);
 
-  // Calculate height: only hour rows, excluding date header rows
+  // Calculate height: total height of all rows (including date header)
   // Each row has: date header (h-6 = 24px) + hour row (h-14 = 56px on desktop, h-16 = 64px on mobile) = 80px total
-  // Line should only cover hour rows
-  const dateHeaderHeight = 24; // h-6 = 24px
   // Detect mobile: if sidebarWidth < 400, it's likely mobile
   const isMobile = sidebarWidth < 400;
+  const dateHeaderHeight = 24; // h-6 = 24px
   const hourRowHeight = isMobile ? 64 : 56; // h-16 = 64px on mobile, h-14 = 56px on desktop
-  const totalHourRowsHeight = timezoneData.length * hourRowHeight;
+  const rowHeight = dateHeaderHeight + hourRowHeight; // Total height per row: 80px (desktop) or 88px (mobile)
+  const totalHeight = timezoneData.length * rowHeight; // Total height of all rows
 
   // Determine if this is hovered column or current hour column
   const isHovered = hoveredColumnIndex !== null;
@@ -44,9 +44,9 @@ export const CurrentTimeLine = ({
       className="absolute pointer-events-none z-20 transition-all duration-150 ease-out"
       style={{
         left: `${leftPosition}px`,
-        top: `${dateHeaderHeight}px`, // Start after date header row
+        top: `${dateHeaderHeight}px`, // Start after first date header row
         width: `${columnWidth}px`,
-        height: `${totalHourRowsHeight}px`, // Only height of hour rows
+        height: `${totalHeight - dateHeaderHeight}px`, // Height covering all hour rows (exclude first date header)
         borderLeft: `1px solid ${isHovered ? '#60a5fa' : '#9ca3af'}`, // solid border, blue-400 when hovered, gray-400 for current hour
         borderRight: `1px solid ${isHovered ? '#60a5fa' : '#9ca3af'}`,
         boxSizing: 'border-box',

@@ -165,7 +165,7 @@ function App() {
               >
               {/* Main container - Each row has its own sidebar + timeline */}
               <div 
-                className="w-full overflow-x-auto"
+                className="relative w-full overflow-x-auto"
                 ref={containerRef}
                 style={{
                   maxWidth: '100vw',
@@ -222,18 +222,18 @@ function App() {
                     </div>
                   ))}
                 </SortableContext>
+                
+                {/* Current Time Line - Solid border indicator (positioned relative to scroll container) */}
+                {timezoneData.length > 0 && currentHourColumn !== null && (
+                  <CurrentTimeLine
+                    timezoneData={timezoneData}
+                    currentHourColumn={currentHourColumn}
+                    hoveredColumnIndex={hoveredColumnIndex}
+                    columnWidth={columnWidth}
+                    sidebarWidth={sidebarWidth}
+                  />
+                )}
               </div>
-              
-              {/* Current Time Line - Solid border indicator (positioned relative to scroll container) */}
-              {timezoneData.length > 0 && currentHourColumn !== null && (
-                <CurrentTimeLine
-                  timezoneData={timezoneData}
-                  currentHourColumn={currentHourColumn}
-                  hoveredColumnIndex={hoveredColumnIndex}
-                  columnWidth={columnWidth}
-                  sidebarWidth={sidebarWidth}
-                />
-              )}
               </div>
             </div>
           </DndContext>
