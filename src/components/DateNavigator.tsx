@@ -29,15 +29,15 @@ export const DateNavigator = ({ selectedDate, onDateSelect, referenceTimezone }:
   };
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-gray-200">
+    <div className="flex items-center gap-1 mb-6">
       {/* Calendar icon */}
-      <div className="flex-shrink-0 text-gray-500">
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button className="p-2 rounded-lg hover:bg-notion-hover transition-notion flex-shrink-0">
+        <svg className="w-5 h-5 text-notion-textLight" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
-      </div>
+      </button>
 
-      {/* Date buttons */}
+      {/* Date buttons - Notion-style pill buttons */}
       <div className="flex items-center gap-1 overflow-x-auto">
         {dates.map((date, index) => {
           const isTodayDate = isToday(date);
@@ -53,12 +53,10 @@ export const DateNavigator = ({ selectedDate, onDateSelect, referenceTimezone }:
               key={index}
               onClick={() => handleDateClick(date)}
               className={`
-                flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+                flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-notion
                 ${isSelectedDate
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : isTodayDate
-                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-notion-text text-white shadow-notion-sm'
+                  : 'text-notion-textLight hover:bg-notion-hover'
                 }
               `}
               aria-label={`Select date ${date.toFormat('MMMM d, yyyy')}`}

@@ -61,17 +61,17 @@ export const CityPicker = ({ selectedCities, onAddCity, t }: CityPickerProps) =>
 
   return (
     <div className="mb-6">
-      <label htmlFor="city-select" className="block text-sm font-medium text-apple-dark mb-2">
+      <label htmlFor="city-select" className="block text-sm font-medium text-notion-text mb-2">
         {t('addCity')}
       </label>
       <select
         id="city-select"
         onChange={handleSelect}
-        className="w-full md:w-auto px-4 py-2.5 border border-apple-border rounded-apple-sm bg-white text-apple-dark focus:outline-none focus:ring-2 focus:ring-apple-blue focus:border-transparent transition-apple"
+        className="w-full max-w-xs px-3 py-2.5 bg-white border border-notion-border rounded-lg text-sm text-notion-text shadow-notion-sm focus:outline-none focus:ring-2 focus:ring-notion-accent/20 focus:border-notion-accent transition-notion cursor-pointer"
       >
-        <option value="">+ {t('selectCity')}</option>
+        <option value="" className="text-notion-textLighter">+ {t('selectCity')}</option>
         {availableCities.map((city) => (
-          <option key={city.id} value={city.id}>
+          <option key={city.id} value={city.id} className="text-notion-text">
             {formatCityOption(city)}
           </option>
         ))}

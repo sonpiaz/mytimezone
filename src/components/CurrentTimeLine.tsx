@@ -41,17 +41,27 @@ export const CurrentTimeLine = ({
 
   return (
     <div
-      className="absolute pointer-events-none z-20 transition-all duration-150 ease-out"
+      className="absolute pointer-events-none z-20 transition-notion"
       style={{
         left: `${leftPosition}px`,
         top: `${dateHeaderHeight}px`, // Start after first date header row
         width: `${columnWidth}px`,
         height: `${totalHeight - dateHeaderHeight}px`, // Height covering all hour rows (exclude first date header)
-        borderLeft: `1px solid ${isHovered ? '#60a5fa' : '#9ca3af'}`, // solid border, blue-400 when hovered, gray-400 for current hour
-        borderRight: `1px solid ${isHovered ? '#60a5fa' : '#9ca3af'}`,
+        borderLeft: `2px solid ${isHovered ? '#2F81F7' : '#D0D0D0'}`, // Notion accent blue when hovered, subtle gray for current hour
+        borderRight: `2px solid ${isHovered ? '#2F81F7' : '#D0D0D0'}`,
         boxSizing: 'border-box',
       }}
       aria-hidden="true"
-    />
+    >
+      {/* Optional: small triangle indicator at top */}
+      {isHovered && (
+        <div 
+          className="absolute -top-1 -left-[6px] w-0 h-0 
+            border-l-[6px] border-l-transparent
+            border-r-[6px] border-r-transparent
+            border-t-[7px] border-t-[#2F81F7]"
+        />
+      )}
+    </div>
   );
 };

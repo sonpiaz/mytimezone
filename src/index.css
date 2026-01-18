@@ -1,18 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  * {
+    transition-property: background-color, border-color, box-shadow, opacity, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
   body {
-    @apply bg-apple-bg text-apple-dark font-sans;
+    @apply bg-notion-bg text-notion-text font-sans;
     margin: 0;
     min-height: 100vh;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer utilities {
   .transition-apple {
     transition: all 200ms ease;
+  }
+  
+  .transition-notion {
+    transition: all 150ms ease-out;
+  }
+  
+  /* Row hover lift effect */
+  .timezone-row:hover {
+    transform: translateY(-1px);
+  }
+  
+  /* Button press effect */
+  button:active {
+    transform: scale(0.98);
   }
 }
 

@@ -30,11 +30,11 @@ export const FeedbackButton = ({ t }: FeedbackButtonProps) => {
   return (
     <button
       onClick={openFeedback}
-      className="fixed bottom-6 right-6 bg-apple-green text-white px-4 py-3 rounded-full shadow-lg hover:bg-green-600 transition-apple flex items-center gap-2 z-50"
+      className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2.5 bg-white border border-notion-border rounded-full text-sm font-medium text-notion-text shadow-notion-md hover:shadow-notion-lg hover:border-notion-textPlaceholder transition-notion z-50"
       aria-label={t('feedback')}
     >
       <svg
-        className="w-5 h-5"
+        className="w-4 h-4"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -43,7 +43,7 @@ export const FeedbackButton = ({ t }: FeedbackButtonProps) => {
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
         />
       </svg>
       <span className="hidden sm:inline">{t('feedback')}</span>

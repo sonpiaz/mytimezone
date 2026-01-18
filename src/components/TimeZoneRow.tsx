@@ -1,27 +1,27 @@
 import { useRef } from 'react';
 import type { TimeZoneData } from '../types';
 
-// Get time-of-day color styling based on hour
+// Get time-of-day color styling based on hour (Notion-style softer pastels)
 // Note: Current hour is marked by border line (CurrentTimeLine component), not background color
 const getTimeOfDayStyle = (hour: number, isCurrentHour: boolean, isHovered: boolean): string => {
   // Hover state (but not current hour - current hour uses border line)
   if (isHovered && !isCurrentHour) {
-    return 'bg-blue-100 text-gray-700';
+    return 'bg-notion-hover text-notion-text';
   }
   
   // Time-of-day colors (applied to all hours, including current hour)
   if (hour >= 0 && hour < 8) {
-    // Night/Early morning (0:00 - 8:00) - Gray
-    return 'bg-gray-100 text-gray-400';
+    // Night/Early morning (0:00 - 8:00) - Very light warm gray
+    return 'bg-hour-night text-notion-textLight';
   } else if (hour >= 8 && hour < 17) {
-    // Business hours (8:00 - 17:00) - Light Green
-    return 'bg-green-50 text-green-700';
+    // Business hours (8:00 - 17:00) - Very light green
+    return 'bg-hour-business text-notion-text';
   } else if (hour >= 17 && hour < 21) {
-    // Evening (17:00 - 21:00) - Light Amber/Yellow
-    return 'bg-amber-50 text-amber-700';
+    // Evening (17:00 - 21:00) - Very light amber
+    return 'bg-hour-evening text-notion-text';
   } else {
-    // Late night (21:00 - 24:00) - Slate Gray
-    return 'bg-slate-100 text-slate-500';
+    // Late night (21:00 - 24:00) - Light cool gray
+    return 'bg-hour-lateNight text-notion-textLight';
   }
 };
 
@@ -79,95 +79,91 @@ export const TimeZoneRow = ({
       <div
         ref={rowRef}
         data-timezone-row
-        className={`bg-white border-b border-gray-200 transition-apple ${
-          isDragging ? 'cursor-grabbing' : ''
+        className={`group bg-white rounded-xl border border-notion-border mb-3 overflow-hidden hover:shadow-notion-md transition-notion timezone-row ${
+          isDragging ? 'cursor-grabbing opacity-50' : ''
         }`}
       >
-        <div className={`flex flex-shrink-0 items-start ${sidebarWidth && sidebarWidth < 400 ? 'h-24 py-3' : 'h-20 py-2'}`}>
-          {/* Two-line layout with fixed-width columns for alignment */}
-          <div 
-            className="flex-shrink-0 flex items-start w-full px-4 border-r border-apple-border relative z-10 bg-white"
-            style={{ width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px` }}
-          >
-            {/* Column 1: Drag handle + Remove button (stacked vertically) */}
-            <div className="flex flex-col items-center gap-1 w-12 flex-shrink-0">
-              {/* Drag Handle */}
-              {dragHandleProps && (
-                <div
-                  {...dragHandleProps}
-                  className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                  aria-label="Drag to reorder"
-                >
-                  <svg width="10" height="14" viewBox="0 0 12 16" fill="currentColor">
-                    <circle cx="3" cy="4" r="1.5" />
-                    <circle cx="9" cy="4" r="1.5" />
-                    <circle cx="3" cy="8" r="1.5" />
-                    <circle cx="9" cy="8" r="1.5" />
-                    <circle cx="3" cy="12" r="1.5" />
-                    <circle cx="9" cy="12" r="1.5" />
-                  </svg>
-                </div>
-              )}
-
-              {/* Remove button - below drag handle */}
-              <button
-                onClick={onRemove}
-                className="text-gray-400 hover:text-red-500 transition-colors text-sm leading-none flex-shrink-0"
-                aria-label={t('remove')}
+        <div className={`flex flex-shrink-0 items-center ${sidebarWidth && sidebarWidth < 400 ? 'h-24' : 'h-20'} p-4`}>
+          {/* Column 1: Drag handle + Remove button (stacked vertically) */}
+          <div className="flex flex-col items-center gap-1 w-8 flex-shrink-0 mr-3">
+            {/* Drag Handle */}
+            {dragHandleProps && (
+              <div
+                {...dragHandleProps}
+                className="cursor-grab active:cursor-grabbing text-notion-textPlaceholder hover:text-notion-textLight transition-colors flex-shrink-0"
+                aria-label="Drag to reorder"
               >
-                ×
-              </button>
-            </div>
-
-            {/* Column 2: Icon/Offset */}
-            <div className="flex items-center gap-2 w-12 flex-shrink-0">
-              {/* Home icon OR offset number */}
-              {isReference ? (
-                <svg 
-                  className="w-4 h-4 flex-shrink-0" 
-                  viewBox="0 0 24 24" 
-                  fill="black"
-                  aria-label="Home city"
-                >
-                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                <svg width="10" height="14" viewBox="0 0 12 16" fill="currentColor">
+                  <circle cx="3" cy="4" r="1.5" />
+                  <circle cx="9" cy="4" r="1.5" />
+                  <circle cx="3" cy="8" r="1.5" />
+                  <circle cx="9" cy="8" r="1.5" />
+                  <circle cx="3" cy="12" r="1.5" />
+                  <circle cx="9" cy="12" r="1.5" />
                 </svg>
-              ) : offsetDisplay ? (
-                <span className="text-xs text-blue-600 font-medium flex-shrink-0">
-                  {offsetDisplay}
-                </span>
-              ) : null}
-            </div>
-
-            {/* Column 3: City + Country - FIXED WIDTH for vertical alignment */}
-            <div className="flex flex-col w-40 flex-shrink-0">
-              {/* Line 1: City name + Timezone badge */}
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-gray-900 text-sm whitespace-nowrap">
-                  {city.name}
-                </span>
-                <span className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
-                  {timezoneLabel}
-                </span>
               </div>
-              
-              {/* Line 2: Country/State - aligned vertically */}
-              <span className="text-xs text-gray-500 whitespace-nowrap mt-0.5">
-                {locationDisplay}
-              </span>
-            </div>
+            )}
 
-            {/* Column 4: Time + Date - RIGHT ALIGNED with gap */}
-            <div className="flex flex-col items-end ml-auto flex-shrink-0 min-w-[120px] pr-1">
-              {/* Line 1: Time */}
-              <span className="text-sm font-semibold text-gray-900 whitespace-nowrap leading-tight">
-                {timeOnly}
+            {/* Remove button - below drag handle, appears on hover */}
+            <button
+              onClick={onRemove}
+              className="opacity-0 group-hover:opacity-100 text-notion-textPlaceholder hover:text-notion-textLight hover:bg-notion-hover p-1 rounded-md transition-all text-sm leading-none flex-shrink-0"
+              aria-label={t('remove')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Column 2: Icon/Offset */}
+          <div className="flex items-center gap-2 w-auto flex-shrink-0 mr-3">
+            {/* Home icon OR offset badge */}
+            {isReference ? (
+              <svg 
+                className="w-4 h-4 flex-shrink-0 text-notion-textLight" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                aria-label="Home city"
+              >
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+              </svg>
+            ) : offsetDisplay ? (
+              <span className="text-xs font-medium text-notion-accent bg-notion-accentLight px-2 py-0.5 rounded-full flex-shrink-0">
+                {offsetDisplay}
               </span>
-              
-              {/* Line 2: Date - with gap from time */}
-              <span className="text-xs text-gray-500 whitespace-nowrap leading-tight mt-1">
-                {formattedDate}
+            ) : null}
+          </div>
+
+          {/* Column 3: City + Country */}
+          <div className="flex flex-col flex-1 min-w-0 mr-4">
+            {/* Line 1: City name + Timezone badge */}
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-notion-text text-sm truncate">
+                {city.name}
+              </span>
+              <span className="text-xs text-notion-textLighter flex-shrink-0">
+                {timezoneLabel}
               </span>
             </div>
+            
+            {/* Line 2: Country/State */}
+            <span className="text-xs text-notion-textLighter truncate mt-0.5">
+              {locationDisplay}
+            </span>
+          </div>
+
+          {/* Column 4: Time + Date - RIGHT ALIGNED */}
+          <div className="flex flex-col items-end flex-shrink-0 min-w-[100px]">
+            {/* Line 1: Time */}
+            <span className="text-lg font-semibold text-notion-text whitespace-nowrap leading-tight tabular-nums">
+              {timeOnly}
+            </span>
+            
+            {/* Line 2: Date */}
+            <span className="text-xs text-notion-textLighter whitespace-nowrap leading-tight mt-0.5">
+              {formattedDate}
+            </span>
           </div>
         </div>
       </div>
@@ -180,13 +176,13 @@ export const TimeZoneRow = ({
       <div
         ref={rowRef}
         data-timezone-row
-        className={`bg-white border-b border-gray-200 transition-apple ${
-          isDragging ? 'cursor-grabbing' : ''
+        className={`bg-white transition-notion ${
+          isDragging ? 'cursor-grabbing opacity-50' : ''
         }`}
       >
         <div className="flex flex-col flex-shrink-0">
           {/* Date Labels Row - REMOVED: Date labels now show inside hour 0 cell instead */}
-          <div className="flex h-6 text-xs text-gray-500 border-b border-gray-100">
+          <div className="flex h-6 text-xs text-notion-textLight border-b border-notion-borderLight">
             {hours.map((slot) => {
               // Date labels are now shown inside the hour 0 cell, not in a separate row
               return (
@@ -213,8 +209,6 @@ export const TimeZoneRow = ({
                 data-hours-grid
               >
                 {hours.map((slot) => {
-                  // Font size adjusted for narrower columns (20-30px)
-                  const fontSize = columnWidth >= 24 ? '11px' : '10px';
                   const isHovered = hoveredColumnIndex === slot.columnIndex;
                   const isMidnight = slot.localHour === 0;
                   
@@ -223,8 +217,9 @@ export const TimeZoneRow = ({
                       key={slot.columnIndex}
                       className={`
                         h-full flex items-center justify-center
-                        border-r-0 cursor-pointer transition-colors relative z-10 rounded-lg
+                        border-r border-notion-borderLight cursor-pointer transition-notion relative z-10
                         ${getTimeOfDayStyle(slot.localHour, slot.isCurrentHour, isHovered)}
+                        hover:bg-notion-hover
                       `}
                       style={{
                         width: `${columnWidth}px`,
@@ -238,21 +233,18 @@ export const TimeZoneRow = ({
                         {/* At midnight (hour 0): Show date label instead of number (2 lines only) */}
                         {isMidnight && slot.dayName && slot.dateLabel ? (
                           <div className="flex flex-col items-center justify-center leading-tight">
-                            <span className="text-xs text-gray-500 leading-none font-medium uppercase">
+                            <span className="text-[10px] text-notion-textLight leading-none font-medium uppercase">
                               {slot.dayName}
                             </span>
-                            <span className="text-xs text-gray-500 leading-none mt-0.5">
+                            <span className="text-[10px] text-notion-textLighter leading-none mt-0.5 uppercase">
                               {slot.dateLabel}
                             </span>
                           </div>
                         ) : (
                           /* Normal hour: Show hour number */
-                          <div 
-                            className="font-medium leading-none text-xs"
-                            style={{ fontSize }}
-                          >
+                          <span className="font-medium leading-none text-sm text-notion-text tabular-nums">
                             {slot.localHour}
-                          </div>
+                          </span>
                         )}
                       </div>
                     </div>

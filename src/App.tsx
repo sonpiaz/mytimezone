@@ -82,23 +82,23 @@ function App() {
   }, [isDesktop, currentHourColumn, columnWidth, sidebarWidth, timezoneData.length]);
 
   return (
-    <div className="min-h-screen bg-apple-bg">
-      {/* Header */}
-      <header className="sticky top-0 bg-white border-b border-apple-border shadow-sm z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-notion-bg">
+      {/* Header - Notion style */}
+      <header className="sticky top-0 bg-white border-b border-notion-border z-40">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-apple-dark">
+              <h1 className="text-2xl font-semibold text-notion-text">
                 {t('title')}
               </h1>
-              <p className="text-sm text-gray-600 mt-1 hidden md:block">
+              <p className="text-sm text-notion-textLight mt-1 hidden md:block">
                 {t('subtitle')}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={toggleLanguage}
-                className="px-3 py-1.5 text-sm text-apple-dark hover:bg-gray-100 rounded-apple-sm transition-apple"
+                className="px-3 py-1.5 text-sm text-notion-textLight hover:bg-notion-hover rounded-lg transition-notion"
                 aria-label={t('language')}
               >
                 {language === 'vi' ? 'EN' : 'VI'}
@@ -109,12 +109,12 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Content - Notion style centered container */}
       <main className="w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Date Navigator */}
         {cities.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-6">
             <DateNavigator
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
@@ -124,16 +124,18 @@ function App() {
         )}
         
         {/* City Picker */}
-        <CityPicker
-          selectedCities={cities}
-          onAddCity={handleAddCity}
-          t={t}
-        />
+        <div className="mb-6">
+          <CityPicker
+            selectedCities={cities}
+            onAddCity={handleAddCity}
+            t={t}
+          />
+        </div>
 
         {/* Timezone Rows */}
         {timezoneData.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">{t('noCities')}</p>
+            <p className="text-notion-textLight">{t('noCities')}</p>
           </div>
         ) : (
           <DndContext
@@ -183,11 +185,11 @@ function App() {
                     <div key={data.city.id} className="flex w-full min-w-max">
                       {/* Sidebar - Fixed, sticky on mobile */}
                       <div 
-                        className={`flex-shrink-0 bg-white ${!isDesktop ? 'sticky left-0 z-30 border-r border-gray-200' : 'z-10'}`}
+                        className={`flex-shrink-0 bg-white ${!isDesktop ? 'sticky left-0 z-30 border-r border-notion-borderLight' : 'z-10'}`}
                         style={{ 
                           width: `${sidebarWidth}px`, 
                           minWidth: `${sidebarWidth}px`,
-                          boxShadow: !isDesktop ? '2px 0 8px rgba(0,0,0,0.15)' : 'none',
+                          boxShadow: !isDesktop ? '2px 0 8px rgba(0,0,0,0.05)' : 'none',
                         }}
                       >
                         <SortableTimeZoneRow
