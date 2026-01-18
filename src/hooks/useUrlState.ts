@@ -27,8 +27,8 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
       // Ignore localStorage errors
     }
     
-    // Default cities
-    return getCitiesBySlugs(['san-francisco', 'london', 'ho-chi-minh']);
+          // Default cities (San Francisco is reference/home city)
+          return getCitiesBySlugs(['san-francisco', 'new-york', 'london', 'singapore', 'da-nang']);
   });
 
   const updateCities = (newCities: City[]) => {

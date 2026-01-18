@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -20,21 +20,25 @@ import { useTranslation } from './hooks/useTranslation';
 import { useHoveredHour } from './hooks/useHoveredHour';
 import { useTimelineLayout } from './hooks/useTimelineLayout';
 import { SortableTimeZoneRow } from './components/SortableTimeZoneRow';
-import { HoveredTimeColumn } from './components/HoveredTimeColumn';
 import { CurrentTimeLine } from './components/CurrentTimeLine';
 import { CityPicker } from './components/CityPicker';
+import { DateNavigator } from './components/DateNavigator';
 import { ShareButton } from './components/ShareButton';
 import { FeedbackButton } from './components/FeedbackButton';
 import type { City } from './types';
 
 function App() {
   const [cities, setCities] = useUrlState();
-  const { timezoneData, currentHourColumn } = useTimezones(cities);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { timezoneData, currentHourColumn } = useTimezones(cities, selectedDate);
   const { language, t, toggleLanguage } = useTranslation();
-  const { hoveredColumnIndex, hoverPosition, isHovering, handleMouseMove, handleColumnLeave } = useHoveredHour();
+  const { hoveredColumnIndex, handleMouseMove, handleColumnLeave } = useHoveredHour();
   const timelineLayout = useTimelineLayout();
   const { columnWidth, isDesktop, sidebarWidth } = timelineLayout;
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Get reference timezone for DateNavigator
+  const referenceTimezone = cities.length > 0 ? cities[0].timezone : 'America/Los_Angeles';
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -81,7 +85,7 @@ function App() {
     <div className="min-h-screen bg-apple-bg">
       {/* Header */}
       <header className="sticky top-0 bg-white border-b border-apple-border shadow-sm z-40">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-apple-dark">
@@ -107,7 +111,18 @@ function App() {
 
       {/* Main Content */}
       <main className="w-full">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        {/* Date Navigator */}
+        {cities.length > 0 && (
+          <div className="mb-4">
+            <DateNavigator
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              referenceTimezone={referenceTimezone}
+            />
+          </div>
+        )}
+        
         {/* City Picker */}
         <CityPicker
           selectedCities={cities}
@@ -127,10 +142,30 @@ function App() {
             onDragEnd={handleDragEnd}
           >
             <div className="flex justify-center w-full">
-              <div className="relative w-full max-w-[1600px] mx-auto" data-timezone-container>
-              {/* Main scroll container - ALWAYS scrollable */}
               <div 
-                className="flex overflow-x-auto overflow-y-visible w-full"
+                className="relative w-full max-w-7xl mx-auto" 
+                data-timezone-container
+                onMouseMove={(e) => {
+                  // Only handle mouse move if we're over the timeline area
+                  const target = e.target as HTMLElement;
+                  const grid = target.closest('[data-hours-grid]');
+                  if (grid) {
+                    const gridRect = grid.getBoundingClientRect();
+                    const mouseX = e.clientX - gridRect.left;
+                    const columnIndex = Math.floor(mouseX / columnWidth);
+                    const clampedColumnIndex = Math.max(0, Math.min(23, columnIndex));
+                    const containerRect = containerRef.current?.getBoundingClientRect();
+                    if (containerRect) {
+                      const absoluteX = e.clientX - containerRect.left;
+                      handleMouseMove(absoluteX, clampedColumnIndex);
+                    }
+                  }
+                }}
+                onMouseLeave={handleColumnLeave}
+              >
+              {/* Main container - Each row has its own sidebar + timeline */}
+              <div 
+                className="w-full overflow-x-auto"
                 ref={containerRef}
                 style={{
                   maxWidth: '100vw',
@@ -140,76 +175,65 @@ function App() {
                   scrollBehavior: 'smooth',
                 }}
               >
-                {/* Fixed left sidebar column */}
-                <div 
-                  className={`flex flex-col flex-shrink-0 z-10 bg-white ${!isDesktop ? 'sticky left-0' : ''}`}
-                  style={{ width: `${sidebarWidth}px`, boxShadow: !isDesktop ? '2px 0 4px rgba(0,0,0,0.1)' : 'none' }}
+                <SortableContext
+                  items={timezoneData.map((data) => data.city.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <SortableContext
-                    items={timezoneData.map((data) => data.city.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {timezoneData.map((data) => (
-                      <SortableTimeZoneRow
-                        key={data.city.id}
-                        data={data}
-                        onRemove={() => handleRemoveCity(data.city.id)}
-                        t={t}
-                        onColumnLeave={handleColumnLeave}
-                        sidebarOnly={true}
-                        sidebarWidth={sidebarWidth}
-                      />
-                    ))}
-                  </SortableContext>
-                </div>
-                
-                {/* Scrollable timeline column - Force minimum width for all 24 columns */}
-                <div 
-                  className="flex flex-col flex-shrink-0"
-                  style={{
-                    minWidth: `${24 * columnWidth}px`,
-                    width: `${24 * columnWidth}px`,
-                  }}
-                >
-                  <SortableContext
-                    items={timezoneData.map((data) => data.city.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {timezoneData.map((data) => (
-                      <SortableTimeZoneRow
-                        key={data.city.id}
-                        data={data}
-                        onRemove={() => handleRemoveCity(data.city.id)}
-                        t={t}
-                        onMouseMove={handleMouseMove}
-                        onColumnLeave={handleColumnLeave}
-                        timelineOnly={true}
-                        columnWidth={columnWidth}
-                        hoveredColumnIndex={hoveredColumnIndex}
-                      />
-                    ))}
-                  </SortableContext>
-                </div>
+                  {timezoneData.map((data) => (
+                    <div key={data.city.id} className="flex w-full min-w-max">
+                      {/* Sidebar - Fixed, sticky on mobile */}
+                      <div 
+                        className={`flex-shrink-0 bg-white ${!isDesktop ? 'sticky left-0 z-30 border-r border-gray-200' : 'z-10'}`}
+                        style={{ 
+                          width: `${sidebarWidth}px`, 
+                          minWidth: `${sidebarWidth}px`,
+                          boxShadow: !isDesktop ? '2px 0 8px rgba(0,0,0,0.15)' : 'none',
+                        }}
+                      >
+                        <SortableTimeZoneRow
+                          data={data}
+                          onRemove={() => handleRemoveCity(data.city.id)}
+                          t={t}
+                          sidebarOnly={true}
+                          sidebarWidth={sidebarWidth}
+                          hoveredColumnIndex={null}
+                          isDesktop={isDesktop}
+                        />
+                      </div>
+                      
+                      {/* Timeline - No overflow, scroll handled by parent */}
+                      <div 
+                        className="flex-shrink-0"
+                        style={{
+                          minWidth: `${24 * columnWidth}px`,
+                          width: `${24 * columnWidth}px`,
+                        }}
+                      >
+                        <SortableTimeZoneRow
+                          data={data}
+                          onRemove={() => handleRemoveCity(data.city.id)}
+                          t={t}
+                          timelineOnly={true}
+                          columnWidth={columnWidth}
+                          hoveredColumnIndex={hoveredColumnIndex}
+                          isDesktop={isDesktop}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </SortableContext>
               </div>
               
-              {/* Vertical lines overlay */}
-              {timezoneData.length > 0 && (
-                <CurrentTimeLine 
-                  containerRef={containerRef} 
+              {/* Current Time Line - Solid border indicator (positioned relative to scroll container) */}
+              {timezoneData.length > 0 && currentHourColumn !== null && (
+                <CurrentTimeLine
                   timezoneData={timezoneData}
                   currentHourColumn={currentHourColumn}
+                  hoveredColumnIndex={hoveredColumnIndex}
                   columnWidth={columnWidth}
                   sidebarWidth={sidebarWidth}
                 />
               )}
-              <HoveredTimeColumn 
-                columnIndex={hoveredColumnIndex} 
-                hoverPosition={hoverPosition}
-                containerRef={containerRef} 
-                isActive={isHovering}
-                columnWidth={columnWidth}
-                sidebarWidth={sidebarWidth}
-              />
               </div>
             </div>
           </DndContext>

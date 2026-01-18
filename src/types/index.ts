@@ -31,6 +31,9 @@ export interface HourData {
   isPreviousDay: boolean; // True if this is previous day from reference
   isBusinessHour: boolean; // True if 9am-5pm local time
   isCurrentHour: boolean; // True if this is current hour in reference timezone
+  dayName?: string; // "SAT", "SUN", "MON" etc. for date labels
+  dateLabel?: string; // "JAN 17", "JAN 18" etc. for date labels
+  isNewDay?: boolean; // True if this is the start of a new day (for showing date label)
 }
 
 export type Language = 'vi' | 'en';

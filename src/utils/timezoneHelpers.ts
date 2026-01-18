@@ -102,6 +102,11 @@ export const generateTimeSlots = (
     const isNextDay = localDay > referenceDay || (localDay === 1 && referenceDay > 28);
     const isPreviousDay = localDay < referenceDay && !isNextDay;
     
+    // Date labels for timeline header - only show at midnight (localHour === 0)
+    const dayName = localTime.toFormat('EEE').toUpperCase(); // "SAT", "SUN", etc.
+    const dateLabel = localTime.toFormat('MMM dd').toUpperCase(); // "JAN 18", "JAN 19", etc. (uppercase, 2-digit day with leading zero)
+    const showDateLabel = localHour === 0; // Only show at midnight (hour 0)
+    
     // Business hours (9am-5pm) in local time
     const isBusinessHour = localHour >= 9 && localHour < 17;
     
@@ -118,6 +123,9 @@ export const generateTimeSlots = (
       isPreviousDay,
       isBusinessHour,
       isCurrentHour,
+      dayName,
+      dateLabel,
+      isNewDay: showDateLabel, // Only true when localHour === 0
     });
   }
 
@@ -141,18 +149,17 @@ export const getTimeZoneData = (
     currentHourInReference
   );
 
-  // Format time: 12-hour format with lowercase am/pm (e.g., "6:35p" not "6:35 PM")
-  const hour12 = currentTime.hour % 12 || 12;
+  // Format time: 24-hour format (e.g., "21:33" instead of "9:33p") - shorter and clearer
+  const hour24 = currentTime.hour;
   const minute = currentTime.minute;
-  const ampm = currentTime.hour < 12 ? 'a' : 'p';
-  const formattedTime = `${hour12}:${minute.toString().padStart(2, '0')}${ampm}`;
+  const formattedTime = `${hour24.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   
   // Format date: "Sat, Jan 17"
   const dayOfWeek = currentTime.toFormat('EEE'); // "Sat", "Sun", etc.
   const monthDay = currentTime.toFormat('MMM d'); // "Jan 17", "Jan 18", etc.
   const formattedDate = `${dayOfWeek}, ${monthDay}`;
   
-  // Keep full formatted time for backward compatibility
+  // Keep full formatted time for backward compatibility (for display in sidebar)
   const fullFormattedTime = `${formattedTime} ${formattedDate}`;
 
   // Calculate offset from reference timezone

@@ -1,5 +1,8 @@
+import { useMemo } from 'react';
+import { DateTime } from 'luxon';
 import type { City } from '../types';
 import { CITIES } from '../constants/cities';
+import { getGMTOffset } from '../utils/timezoneHelpers';
 
 interface CityPickerProps {
   selectedCities: City[];
@@ -7,10 +10,39 @@ interface CityPickerProps {
   t: (key: string) => string;
 }
 
+// Calculate UTC offset in hours for sorting
+const getUTCOffset = (timezone: string): number => {
+  const now = DateTime.now().setZone(timezone);
+  return now.offset / 60; // Convert minutes to hours
+};
+
+// Format city display with timezone
+const formatCityOption = (city: City): string => {
+  const offsetLabel = getGMTOffset(city.timezone);
+  const locationParts = [city.name];
+  
+  if (city.state && (city.country === 'USA' || city.country === 'United States')) {
+    locationParts.push(city.state);
+  }
+  locationParts.push(city.country);
+  
+  return `${offsetLabel} · ${locationParts.join(', ')}`;
+};
+
 export const CityPicker = ({ selectedCities, onAddCity, t }: CityPickerProps) => {
-  const availableCities = CITIES.filter(
-    city => !selectedCities.some(selected => selected.id === city.id)
-  );
+  // Filter out already selected cities and sort by UTC offset
+  const availableCities = useMemo(() => {
+    const filtered = CITIES.filter(
+      city => !selectedCities.some(selected => selected.id === city.id)
+    );
+    
+    // Sort by UTC offset (from -12 to +14)
+    return filtered.sort((a, b) => {
+      const offsetA = getUTCOffset(a.timezone);
+      const offsetB = getUTCOffset(b.timezone);
+      return offsetA - offsetB;
+    });
+  }, [selectedCities]);
 
   if (availableCities.length === 0) {
     return null;
@@ -37,10 +69,10 @@ export const CityPicker = ({ selectedCities, onAddCity, t }: CityPickerProps) =>
         onChange={handleSelect}
         className="w-full md:w-auto px-4 py-2.5 border border-apple-border rounded-apple-sm bg-white text-apple-dark focus:outline-none focus:ring-2 focus:ring-apple-blue focus:border-transparent transition-apple"
       >
-        <option value="">{t('selectCity')}</option>
+        <option value="">+ {t('selectCity')}</option>
         {availableCities.map((city) => (
           <option key={city.id} value={city.id}>
-            {city.name} ({city.country})
+            {formatCityOption(city)}
           </option>
         ))}
       </select>

@@ -1,86 +1,57 @@
-import { useEffect, useState } from 'react';
 import type { TimeZoneData } from '../types';
 
 interface CurrentTimeLineProps {
-  containerRef: React.RefObject<HTMLDivElement | null>;
   timezoneData: TimeZoneData[];
-  currentHourColumn: number;
+  currentHourColumn: number | null;
+  hoveredColumnIndex: number | null;
   columnWidth: number;
   sidebarWidth: number;
 }
 
-export const CurrentTimeLine = ({ containerRef, timezoneData, currentHourColumn, columnWidth, sidebarWidth }: CurrentTimeLineProps) => {
-  const [lineStyle, setLineStyle] = useState<React.CSSProperties | null>(null);
+export const CurrentTimeLine = ({
+  timezoneData,
+  currentHourColumn,
+  hoveredColumnIndex,
+  columnWidth,
+  sidebarWidth,
+}: CurrentTimeLineProps) => {
+  // Determine which column to highlight
+  // If hovering, show line at hovered column; otherwise show at current hour
+  const activeColumn = hoveredColumnIndex !== null ? hoveredColumnIndex : currentHourColumn;
 
-  const calculatePosition = () => {
-    if (!containerRef.current || timezoneData.length === 0) {
-      setLineStyle(null);
-      return;
-    }
+  if (activeColumn === null || timezoneData.length === 0) {
+    return null;
+  }
 
-    const rows = containerRef.current.querySelectorAll('[data-timezone-row]');
-    if (rows.length === 0) {
-      setLineStyle(null);
-      return;
-    }
+  // Calculate position: sidebar width + (column index * column width)
+  // No margin needed since sidebar and timeline are in same row now
+  const leftPosition = sidebarWidth + (activeColumn * columnWidth);
 
-    // Current time line should be at the current hour column in reference timezone
-    const firstRow = rows[0] as HTMLElement;
-    const firstGrid = firstRow?.querySelector('[data-hours-grid]') as HTMLElement;
-    if (!firstGrid || !containerRef.current) {
-      setLineStyle(null);
-      return;
-    }
+  // Calculate height: only hour rows, excluding date header rows
+  // Each row has: date header (h-6 = 24px) + hour row (h-14 = 56px on desktop, h-16 = 64px on mobile) = 80px total
+  // Line should only cover hour rows
+  const dateHeaderHeight = 24; // h-6 = 24px
+  // Detect mobile: if sidebarWidth < 400, it's likely mobile
+  const isMobile = sidebarWidth < 400;
+  const hourRowHeight = isMobile ? 64 : 56; // h-16 = 64px on mobile, h-14 = 56px on desktop
+  const totalHourRowsHeight = timezoneData.length * hourRowHeight;
 
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const firstGridRect = firstGrid.getBoundingClientRect();
-    const timelineWidth = firstGridRect.width;
-    const columnWidth = timelineWidth / 24;
-    
-    // Calculate position for current hour column
-    const xPosition = firstGridRect.left - containerRect.left + (currentHourColumn * columnWidth) + (columnWidth / 2);
-
-    // Calculate total height: from top of first row to bottom of last row
-    const firstRowRect = (rows[0] as HTMLElement).getBoundingClientRect();
-    const lastRowRect = (rows[rows.length - 1] as HTMLElement).getBoundingClientRect();
-    const totalHeight = lastRowRect.bottom - firstRowRect.top;
-    const topPosition = firstRowRect.top;
-
-    setLineStyle({
-      left: `${xPosition}px`,
-      top: `${topPosition}px`,
-      height: `${totalHeight}px`,
-      transform: 'translateX(-50%)',
-    });
-  };
-
-  useEffect(() => {
-    calculatePosition();
-
-    // Update every minute (60 seconds) as specified
-    const interval = setInterval(calculatePosition, 60000);
-
-    // Also update on scroll/resize
-    const handleUpdate = () => calculatePosition();
-    window.addEventListener('scroll', handleUpdate, true);
-    window.addEventListener('resize', handleUpdate);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('scroll', handleUpdate, true);
-      window.removeEventListener('resize', handleUpdate);
-    };
-  }, [containerRef, timezoneData, currentHourColumn, columnWidth, sidebarWidth]);
-
-  if (!lineStyle || !containerRef.current) return null;
+  // Determine if this is hovered column or current hour column
+  const isHovered = hoveredColumnIndex !== null;
 
   return (
     <div
-      className="absolute w-[3px] bg-gray-900 pointer-events-none z-20"
+      className="absolute pointer-events-none z-20 transition-all duration-150 ease-out"
       style={{
-        ...lineStyle,
-        transition: 'left 0.3s ease-out',
+        left: `${leftPosition}px`,
+        top: `${dateHeaderHeight}px`, // Start after date header row
+        width: `${columnWidth}px`,
+        height: `${totalHourRowsHeight}px`, // Only height of hour rows
+        borderLeft: `1px solid ${isHovered ? '#60a5fa' : '#9ca3af'}`, // solid border, blue-400 when hovered, gray-400 for current hour
+        borderRight: `1px solid ${isHovered ? '#60a5fa' : '#9ca3af'}`,
+        boxSizing: 'border-box',
       }}
+      aria-hidden="true"
     />
   );
 };
