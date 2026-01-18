@@ -1,8 +1,18 @@
 import { DateTime } from 'luxon';
 import type { City, TimeZoneData, HourData } from '../types';
+import { HOURS_PER_DAY } from '../constants/layout';
+
+// Cache for timezone abbreviations to avoid repeated lookups
+const timezoneAbbrCache = new Map<string, string>();
 
 export const getCurrentTime = (timezone: string): DateTime => {
-  return DateTime.now().setZone(timezone);
+  try {
+    return DateTime.now().setZone(timezone);
+  } catch (error) {
+    console.error(`Invalid timezone: ${timezone}`, error);
+    // Fallback to UTC
+    return DateTime.now().setZone('UTC');
+  }
 };
 
 export const getGMTOffset = (timezone: string): string => {
@@ -15,23 +25,28 @@ export const getGMTOffset = (timezone: string): string => {
 };
 
 export const getTimezoneAbbreviation = (timezone: string): string => {
+  // Check cache first
+  if (timezoneAbbrCache.has(timezone)) {
+    return timezoneAbbrCache.get(timezone)!;
+  }
+
   const now = getCurrentTime(timezone);
   
   // Try to get abbreviation from Luxon
   try {
-    // Use offsetNameShort which gives abbreviations like "PST", "EST", "GMT"
     const abbr = now.offsetNameShort;
     if (abbr && abbr.length <= 5) {
+      timezoneAbbrCache.set(timezone, abbr);
       return abbr;
     }
   } catch (e) {
-    // Ignore errors
+    // Ignore errors, fall through to mappings
   }
   
   // Fallback: Extract from timezone string or use common mappings
   const timezoneLower = timezone.toLowerCase();
   
-  // Common timezone mappings
+  // Common timezone mappings (static, no need to recalculate)
   const mappings: Record<string, string> = {
     'america/los_angeles': 'PST',
     'america/new_york': 'EST',
@@ -49,7 +64,9 @@ export const getTimezoneAbbreviation = (timezone: string): string => {
     'australia/melbourne': 'AEDT',
   };
   
-  return mappings[timezoneLower] || timezone.split('/').pop()?.toUpperCase().substring(0, 3) || 'UTC';
+  const result = mappings[timezoneLower] || timezone.split('/').pop()?.toUpperCase().substring(0, 3) || 'UTC';
+  timezoneAbbrCache.set(timezone, result);
+  return result;
 };
 
 /**
@@ -85,7 +102,7 @@ export const generateTimeSlots = (
   const slots: HourData[] = [];
   const referenceDay = referenceDate.day;
 
-  for (let columnIndex = 0; columnIndex < 24; columnIndex++) {
+  for (let columnIndex = 0; columnIndex < HOURS_PER_DAY; columnIndex++) {
     // Calculate absolute time for this column (in reference timezone)
     const absoluteTime = referenceDate.startOf('day').plus({ hours: columnIndex });
     

@@ -17,23 +17,19 @@ export const useTimezones = (cities: City[], selectedDate?: Date) => {
     const referenceTimezone = cities[0].timezone;
     
     // Use selectedDate if provided, otherwise use current time
-    const baseDate = selectedDate 
-      ? DateTime.fromJSDate(selectedDate).setZone(referenceTimezone)
-      : DateTime.now().setZone(referenceTimezone);
+    const now = DateTime.now().setZone(referenceTimezone);
+    const today = now.startOf('day');
     
-    // If selectedDate is provided, use the current hour of that day
-    // Otherwise use the actual current hour
-    const referenceNow = selectedDate
-      ? baseDate.set({ 
-          hour: DateTime.now().setZone(referenceTimezone).hour,
-          minute: DateTime.now().setZone(referenceTimezone).minute,
-          second: 0,
-          millisecond: 0
-        })
-      : baseDate;
+    // If selectedDate is provided, check if it's today
+    const selectedDateTime = selectedDate 
+      ? DateTime.fromJSDate(selectedDate).setZone(referenceTimezone).startOf('day')
+      : null;
     
-    const referenceDate = referenceNow.startOf('day');
-    const currentHour = referenceNow.hour;
+    const isSelectedDateToday = selectedDateTime?.hasSame(today, 'day');
+    
+    // If selectedDate is today, use current hour; otherwise start from 0h
+    const referenceDate = selectedDateTime || today;
+    const currentHour = isSelectedDateToday ? now.hour : 0; // Start from 0h if not today
 
     setCurrentHourColumn(currentHour);
 
@@ -49,8 +45,8 @@ export const useTimezones = (cities: City[], selectedDate?: Date) => {
     );
     setTimezoneData(data);
 
-    // Update every minute to keep time current (only if not using selectedDate)
-    if (!selectedDate) {
+    // Update every minute to keep time current (only if viewing today)
+    if (isSelectedDateToday) {
       const interval = setInterval(() => {
         const newReferenceNow = DateTime.now().setZone(referenceTimezone);
         const newReferenceDate = newReferenceNow.startOf('day');

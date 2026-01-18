@@ -1,4 +1,13 @@
 import { useEffect, useState } from 'react';
+import {
+  BREAKPOINT_DESKTOP,
+  MIN_COLUMN_WIDTH,
+  MOBILE_COLUMN_WIDTH,
+  SIDEBAR_WIDTH_DESKTOP,
+  SIDEBAR_WIDTH_MOBILE,
+  CONTAINER_PADDING,
+  HOURS_PER_DAY,
+} from '../constants/layout';
 
 interface TimelineLayout {
   columnWidth: number;
@@ -6,35 +15,30 @@ interface TimelineLayout {
   sidebarWidth: number;
 }
 
-const BREAKPOINT_DESKTOP = 1024;
-const MIN_COLUMN_WIDTH = 20;
-const MAX_COLUMN_WIDTH = 30;
-const MOBILE_COLUMN_WIDTH = 24;
-
 export const useTimelineLayout = (): TimelineLayout => {
   const [layout, setLayout] = useState<TimelineLayout>(() => {
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : BREAKPOINT_DESKTOP;
     const isDesktop = viewportWidth >= BREAKPOINT_DESKTOP;
     
-    if (isDesktop) {
-      const sidebarWidth = 400; // Increased to fit time/date fully
-      const padding = 64; // margins and padding
-      const availableWidth = viewportWidth - sidebarWidth - padding;
-      const calculatedWidth = Math.floor(availableWidth / 24);
-      // Target ~24px per column, allow some flexibility
-      const clampedWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, calculatedWidth));
-      
-      return {
-        columnWidth: clampedWidth,
-        isDesktop: true,
-        sidebarWidth,
-      };
-    }
+      if (isDesktop) {
+        // Calculate available width: viewport - sidebar - container padding
+        const availableWidth = viewportWidth - SIDEBAR_WIDTH_DESKTOP - CONTAINER_PADDING;
+        // Calculate column width to fit exactly 24 columns
+        const calculatedWidth = availableWidth / HOURS_PER_DAY;
+        // Only clamp if too small, allow larger columns on wide screens
+        const clampedWidth = Math.max(MIN_COLUMN_WIDTH, calculatedWidth);
+        
+        return {
+          columnWidth: clampedWidth,
+          isDesktop: true,
+          sidebarWidth: SIDEBAR_WIDTH_DESKTOP,
+        };
+      }
     
     return {
       columnWidth: MOBILE_COLUMN_WIDTH,
       isDesktop: false,
-      sidebarWidth: 340, // Increased to fit time/date fully
+      sidebarWidth: SIDEBAR_WIDTH_MOBILE,
     };
   });
 
@@ -44,23 +48,23 @@ export const useTimelineLayout = (): TimelineLayout => {
       const isDesktop = viewportWidth >= BREAKPOINT_DESKTOP;
       
       if (isDesktop) {
-        const sidebarWidth = 400; // Increased to fit time/date fully
-        const padding = 64; // margins and padding
-        const availableWidth = viewportWidth - sidebarWidth - padding;
-        const calculatedWidth = Math.floor(availableWidth / 24);
-        // Target ~24px per column, allow some flexibility
-        const clampedWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, calculatedWidth));
+        // Calculate available width: viewport - sidebar - container padding
+        const availableWidth = viewportWidth - SIDEBAR_WIDTH_DESKTOP - CONTAINER_PADDING;
+        // Calculate column width to fit exactly 24 columns
+        const calculatedWidth = availableWidth / HOURS_PER_DAY;
+        // Only clamp if too small, allow larger columns on wide screens
+        const clampedWidth = Math.max(MIN_COLUMN_WIDTH, calculatedWidth);
         
         setLayout({
           columnWidth: clampedWidth,
           isDesktop: true,
-          sidebarWidth,
+          sidebarWidth: SIDEBAR_WIDTH_DESKTOP,
         });
       } else {
         setLayout({
           columnWidth: MOBILE_COLUMN_WIDTH,
           isDesktop: false,
-          sidebarWidth: 340, // Increased to fit time/date fully
+          sidebarWidth: SIDEBAR_WIDTH_MOBILE,
         });
       }
     };

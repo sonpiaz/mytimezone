@@ -1,4 +1,5 @@
 import type { TimeZoneData } from '../types';
+import { DATE_HEADER_HEIGHT, HOUR_ROW_HEIGHT_DESKTOP, HOUR_ROW_HEIGHT_MOBILE } from '../constants/layout';
 
 interface CurrentTimeLineProps {
   timezoneData: TimeZoneData[];
@@ -6,6 +7,7 @@ interface CurrentTimeLineProps {
   hoveredColumnIndex: number | null;
   columnWidth: number;
   sidebarWidth: number;
+  showCurrentTime?: boolean; // Only show current time line if viewing today
 }
 
 export const CurrentTimeLine = ({
@@ -14,54 +16,69 @@ export const CurrentTimeLine = ({
   hoveredColumnIndex,
   columnWidth,
   sidebarWidth,
+  showCurrentTime = true,
 }: CurrentTimeLineProps) => {
-  // Determine which column to highlight
-  // If hovering, show line at hovered column; otherwise show at current hour
-  const activeColumn = hoveredColumnIndex !== null ? hoveredColumnIndex : currentHourColumn;
+  // Only show indicator when viewing "Today"
+  if (!showCurrentTime || timezoneData.length === 0) {
+    return null;
+  }
 
-  if (activeColumn === null || timezoneData.length === 0) {
+  // Determine active column: hover position OR current hour
+  const activeColumn = hoveredColumnIndex !== null ? hoveredColumnIndex : currentHourColumn;
+  
+  // If no active column, don't show
+  if (activeColumn === null) {
     return null;
   }
 
   // Calculate position: sidebar width + (column index * column width)
-  // No margin needed since sidebar and timeline are in same row now
   const leftPosition = sidebarWidth + (activeColumn * columnWidth);
 
-  // Calculate height: total height of all rows (including date header)
-  // Each row has: date header (h-6 = 24px) + hour row (h-14 = 56px on desktop, h-16 = 64px on mobile) = 80px total
   // Detect mobile: if sidebarWidth < 400, it's likely mobile
   const isMobile = sidebarWidth < 400;
-  const dateHeaderHeight = 24; // h-6 = 24px
-  const hourRowHeight = isMobile ? 64 : 56; // h-16 = 64px on mobile, h-14 = 56px on desktop
-  const rowHeight = dateHeaderHeight + hourRowHeight; // Total height per row: 80px (desktop) or 88px (mobile)
-  const totalHeight = timezoneData.length * rowHeight; // Total height of all rows
+  const hourRowHeight = isMobile ? HOUR_ROW_HEIGHT_MOBILE : HOUR_ROW_HEIGHT_DESKTOP;
+  
+  // Calculate total height: number of cities × hour row height
+  // Each city has one hour row (date header is separate, not included in the box)
+  // IMPORTANT: Each timezone row has:
+  // - Date header: 24px (DATE_HEADER_HEIGHT) - NOT included in box
+  // - Hour row: 56px desktop / 64px mobile (HOUR_ROW_HEIGHT) - INCLUDED in box
+  // - Margin between rows: mb-3 = 12px - NOT included in box (spacing between rows)
+  const totalHeight = timezoneData.length * hourRowHeight;
+  
+  // Debug: Log to verify calculation (only in development)
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    console.log('CurrentTimeLine Debug:', {
+      citiesCount: timezoneData.length,
+      hourRowHeight,
+      totalHeight,
+      activeColumn,
+      isHovered: hoveredColumnIndex !== null,
+      currentHour: currentHourColumn,
+    });
+  }
 
-  // Determine if this is hovered column or current hour column
-  const isHovered = hoveredColumnIndex !== null;
-
+  // World Time Buddy style: Black border box around the entire column
+  // Follow hover position if hovering, otherwise show at current hour
+  // IMPORTANT: Ensure this is rendered outside any overflow containers
   return (
     <div
-      className="absolute pointer-events-none z-20 transition-notion"
+      className="absolute pointer-events-none z-30 transition-all duration-200 ease-out"
       style={{
         left: `${leftPosition}px`,
-        top: `${dateHeaderHeight}px`, // Start after first date header row
+        top: `${DATE_HEADER_HEIGHT}px`, // Start after date header row
         width: `${columnWidth}px`,
-        height: `${totalHeight - dateHeaderHeight}px`, // Height covering all hour rows (exclude first date header)
-        borderLeft: `2px solid ${isHovered ? '#2F81F7' : '#D0D0D0'}`, // Notion accent blue when hovered, subtle gray for current hour
-        borderRight: `2px solid ${isHovered ? '#2F81F7' : '#D0D0D0'}`,
+        height: `${totalHeight}px`,
+        minHeight: `${totalHeight}px`, // Ensure minimum height
+        border: '2px solid #1a1a1a', // Black border (World Time Buddy style)
+        borderRadius: '6px', // Slightly rounded corners
         boxSizing: 'border-box',
+        backgroundColor: 'transparent', // No fill, only border
+        // Ensure it's not clipped by parent overflow
+        position: 'absolute',
       }}
       aria-hidden="true"
-    >
-      {/* Optional: small triangle indicator at top */}
-      {isHovered && (
-        <div 
-          className="absolute -top-1 -left-[6px] w-0 h-0 
-            border-l-[6px] border-l-transparent
-            border-r-[6px] border-r-transparent
-            border-t-[7px] border-t-[#2F81F7]"
-        />
-      )}
-    </div>
+      aria-label={hoveredColumnIndex !== null ? "Hovered time indicator" : "Current time indicator"}
+    />
   );
 };

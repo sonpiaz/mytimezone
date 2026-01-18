@@ -1,0 +1,14 @@
+{
+  "providers": [
+    {
+      "id": "1735123456789",
+      "name": "Anthropic",
+      "baseUrl": "https://api.anthropic.com",
+      "model": "Claude Sonnet 4",
+      "apiKey": "YOUR_API_KEY_HERE",
+      "description": null,
+      "createdAt": "2024-12-25T00:00:00.000Z",
+      "active": true
+    }
+  ]
+}

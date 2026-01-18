@@ -19,26 +19,56 @@ import { useTimezones } from './hooks/useTimezones';
 import { useTranslation } from './hooks/useTranslation';
 import { useHoveredHour } from './hooks/useHoveredHour';
 import { useTimelineLayout } from './hooks/useTimelineLayout';
-import { useMediaQuery } from './hooks/useMediaQuery';
 import { SortableTimeZoneRow } from './components/SortableTimeZoneRow';
 import { CurrentTimeLine } from './components/CurrentTimeLine';
 import { MobileTimezoneView } from './components/MobileTimezoneView';
-import { CityPicker } from './components/CityPicker';
+import { CitySearch } from './components/CitySearch';
 import { DateNavigator } from './components/DateNavigator';
 import { ShareButton } from './components/ShareButton';
 import { FeedbackButton } from './components/FeedbackButton';
+import { ToastManager } from './components/Toast';
+import { MeetingScheduler } from './components/MeetingScheduler';
 import type { City } from './types';
+
+interface Toast {
+  id: string;
+  message: string;
+  type?: 'success' | 'error' | 'info';
+}
 
 function App() {
   const [cities, setCities] = useUrlState();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showScheduler, setShowScheduler] = useState(false);
   const { timezoneData, currentHourColumn } = useTimezones(cities, selectedDate);
+  
+  // Check if selected date is today (for showing current time indicator)
+  const isSelectedDateToday = (() => {
+    if (!selectedDate) return true;
+    const today = new Date();
+    const selected = new Date(selectedDate);
+    return (
+      today.getFullYear() === selected.getFullYear() &&
+      today.getMonth() === selected.getMonth() &&
+      today.getDate() === selected.getDate()
+    );
+  })();
+  
   const { language, t, toggleLanguage } = useTranslation();
   const { hoveredColumnIndex, handleMouseMove, handleColumnLeave } = useHoveredHour();
   const timelineLayout = useTimelineLayout();
   const { columnWidth, isDesktop, sidebarWidth } = timelineLayout;
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMediaQuery('(max-width: 640px)');
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    const id = Date.now().toString();
+    setToasts((prev) => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
   
   // Get reference timezone for DateNavigator
   const referenceTimezone = cities.length > 0 ? cities[0].timezone : 'America/Los_Angeles';
@@ -55,11 +85,26 @@ function App() {
   );
 
   const handleAddCity = (city: City) => {
-    setCities([...cities, city]);
+    try {
+      setCities([...cities, city]);
+      showToast(t('cityAdded') || `Added ${city.name}`, 'success');
+    } catch (error) {
+      console.error('Failed to add city:', error);
+      showToast(t('errorAddingCity') || 'Failed to add city', 'error');
+    }
   };
 
   const handleRemoveCity = (cityId: string) => {
-    setCities(cities.filter(city => city.id !== cityId));
+    try {
+      const city = cities.find(c => c.id === cityId);
+      setCities(cities.filter(city => city.id !== cityId));
+      if (city) {
+        showToast(t('cityRemoved') || `Removed ${city.name}`, 'info');
+      }
+    } catch (error) {
+      console.error('Failed to remove city:', error);
+      showToast(t('errorRemovingCity') || 'Failed to remove city', 'error');
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -99,6 +144,15 @@ function App() {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {cities.length >= 2 && (
+                <button
+                  onClick={() => setShowScheduler(true)}
+                  className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2 transition-colors"
+                >
+                  <span>🎯</span>
+                  <span className="hidden sm:inline">Find Best Time</span>
+                </button>
+              )}
               <button
                 onClick={toggleLanguage}
                 className="px-3 py-1.5 text-sm text-notion-textLight hover:bg-notion-hover rounded-lg transition-notion"
@@ -126,9 +180,9 @@ function App() {
           </div>
         )}
         
-        {/* City Picker */}
+        {/* City Search */}
         <div className="mb-6">
-          <CityPicker
+          <CitySearch
             selectedCities={cities}
             onAddCity={handleAddCity}
             t={t}
@@ -140,7 +194,7 @@ function App() {
           <div className="text-center py-12">
             <p className="text-notion-textLight">{t('noCities')}</p>
           </div>
-        ) : isMobile ? (
+        ) : !isDesktop ? (
           // Mobile: Single scroll container layout
           <DndContext
             sensors={sensors}
@@ -188,7 +242,11 @@ function App() {
                   if (grid) {
                     const gridRect = grid.getBoundingClientRect();
                     const mouseX = e.clientX - gridRect.left;
-                    const columnIndex = Math.floor(mouseX / columnWidth);
+                    // Desktop: Use grid width / 24. Mobile: Use columnWidth
+                    const gridWidth = gridRect.width;
+                    const columnIndex = isDesktop 
+                      ? Math.floor((mouseX / gridWidth) * 24)
+                      : Math.floor(mouseX / columnWidth);
                     const clampedColumnIndex = Math.max(0, Math.min(23, columnIndex));
                     const containerRect = containerRef.current?.getBoundingClientRect();
                     if (containerRect) {
@@ -200,14 +258,16 @@ function App() {
                 onMouseLeave={handleColumnLeave}
               >
                 <div 
-                  className="relative w-full overflow-x-auto"
+                  className={`relative w-full ${isDesktop ? 'overflow-x-hidden' : 'overflow-x-auto'}`}
                   ref={containerRef}
                   style={{
                     maxWidth: '100vw',
-                    scrollbarGutter: 'stable',
-                    overscrollBehavior: 'contain',
-                    WebkitOverflowScrolling: 'touch',
-                    scrollBehavior: 'smooth',
+                    ...(isDesktop ? {} : {
+                      scrollbarGutter: 'stable',
+                      overscrollBehavior: 'contain',
+                      WebkitOverflowScrolling: 'touch',
+                      scrollBehavior: 'smooth',
+                    }),
                   }}
                 >
                   <SortableContext
@@ -258,13 +318,14 @@ function App() {
                   </SortableContext>
                   
                   {/* Current Time Line - Desktop only */}
-                  {timezoneData.length > 0 && currentHourColumn !== null && (
+                  {timezoneData.length > 0 && (
                     <CurrentTimeLine
                       timezoneData={timezoneData}
                       currentHourColumn={currentHourColumn}
                       hoveredColumnIndex={hoveredColumnIndex}
                       columnWidth={columnWidth}
                       sidebarWidth={sidebarWidth}
+                      showCurrentTime={isSelectedDateToday}
                     />
                   )}
                 </div>
@@ -277,6 +338,19 @@ function App() {
 
       {/* Feedback Button */}
       <FeedbackButton t={t} />
+      
+      {/* Toast Notifications */}
+      <ToastManager toasts={toasts} onRemove={removeToast} />
+      
+      {/* Meeting Scheduler */}
+      {showScheduler && (
+        <MeetingScheduler
+          isOpen={showScheduler}
+          onClose={() => setShowScheduler(false)}
+          cities={cities}
+          onCopy={() => showToast('Copied to clipboard!', 'success')}
+        />
+      )}
     </div>
   );
 }
