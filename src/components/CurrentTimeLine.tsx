@@ -28,18 +28,11 @@ export const TimeIndicator = ({
   const [actualRowHeight, setActualRowHeight] = useState(0);
   const [topPosition, setTopPosition] = useState(0);
 
-  // Don't show if disabled or no cities
-  if (!showIndicator || totalCities === 0) {
-    return null;
-  }
-
-  // Don't show if no valid position
-  if (!cellPosition) {
-    return null;
-  }
-
   // CRITICAL FIX: Measure ACTUAL position and height from DOM
+  // Hooks MUST be called before any early returns (Rules of Hooks)
   useEffect(() => {
+    if (!cellPosition) return; // Early return inside useEffect is OK
+    
     const container = document.querySelector('[data-timezone-container]');
     
     if (container) {
@@ -81,8 +74,17 @@ export const TimeIndicator = ({
     }
   }, [totalCities, isMobile, cellPosition]);
 
+  // Early returns AFTER all hooks (Rules of Hooks)
+  if (!showIndicator || totalCities === 0) {
+    return null;
+  }
+
+  if (!cellPosition) {
+    return null;
+  }
+
   // Don't render until we have actual measurements
-  if (actualRowHeight === 0 || !cellPosition) {
+  if (actualRowHeight === 0) {
     return null;
   }
 
