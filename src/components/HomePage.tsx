@@ -219,9 +219,9 @@ export function HomePage() {
                 {t('subtitle')}
               </p>
               {/* Visitor Counter - MY-31 */}
-              {/* <p className="text-sm text-gray-400 mt-1">
-                📊 500+ people used this today
-              </p> */}
+              <p className="text-sm text-gray-400 mt-1">
+                ?? 500+ people used this today
+              </p>
             </div>
             <div className="flex items-center gap-2">
               {/* Share Button - Ghost style */}
@@ -234,7 +234,7 @@ export function HomePage() {
                   className="hidden lg:flex px-4 py-2 text-sm bg-[#191919] text-white rounded-lg hover:bg-gray-800 items-center gap-1.5 transition-colors font-medium"
                   title="Find the best meeting time"
                 >
-                  <span className="text-xs">✨</span>
+                  <span className="text-xs">?</span>
                   <span>{t('findBestTime')}</span>
                 </button>
               )}
@@ -451,14 +451,14 @@ export function HomePage() {
         {cities.length >= 2 && (
           <div className="mt-6 p-4 bg-[#F7F7F5] rounded-lg border border-[#E9E9E7] flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="text-[#6B7280] text-sm">
-              ✨ {t('findBestTime')} for {cities.length} cities
+              ? {t('findBestTime')} for {cities.length} cities
             </span>
             <button
               onClick={() => setShowScheduler(true)}
               className="bg-[#191919] text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors font-medium text-sm flex items-center gap-2 whitespace-nowrap"
             >
-              <span className="text-xs">✨</span>
-              {t('findBestTime')} →
+              <span className="text-xs">?</span>
+              {t('findBestTime')} ?
             </button>
           </div>
         )}
@@ -472,7 +472,7 @@ export function HomePage() {
           className="lg:hidden fixed bottom-6 right-6 z-50 bg-[#191919] text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-gray-800 transition-colors font-medium text-sm"
           title="Find the best meeting time"
         >
-          <span>✨</span>
+          <span>?</span>
           <span>{t('findBestTime')}</span>
         </button>
       )}
