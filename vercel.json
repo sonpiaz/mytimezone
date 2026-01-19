@@ -24,7 +24,7 @@
       ]
     },
     {
-      "source": "/embed",
+      "source": "/widget",
       "headers": [
         {
           "key": "X-Frame-Options",
