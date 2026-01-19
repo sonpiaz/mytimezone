@@ -1,0 +1,169 @@
+# MyTimezone - Cursor AI Rules
+# Version: 2.0 - Strict Linear Sync
+
+## 🎯 Project Context
+
+**Project:** My Time Zone - Timezone converter & meeting scheduler
+**Live URL:** https://mytimezone.online
+**Linear Team:** "My Time Zone" (prefix: MY-)
+**Linear Doc:** https://linear.app/mytimezone/document/projectmd-ai-team-context-14a77176115f
+
+---
+
+## 🚨 CRITICAL RULES - BẮT BUỘC
+
+### Rule 1: LUÔN commit với ticket ID
+```
+[MY-XX] Mô tả ngắn gọn
+```
+❌ KHÔNG ĐƯỢC: `fix bug`, `update code`
+✅ ĐÚNG: `[MY-28] Add preview link to Embed Modal`
+
+### Rule 2: LUÔN update Linear status khi HOÀN THÀNH
+Sau khi code XONG + DEPLOY + TEST:
+1. Vào Linear ticket
+2. Đổi status từ "In Progress" → "Done"
+3. Comment kết quả: files changed, tested gì
+
+**KHÔNG ĐƯỢC để ticket "In Progress" khi đã xong!**
+
+### Rule 3: LUÔN update PROJECT.md sau feature lớn
+File: `PROJECT.md` ở root repo
+Update sections:
+- "Recent Changes" - thêm ticket vừa xong
+- "Key Files" - nếu có file mới quan trọng
+- "Current Status" - update In Progress / Done
+
+### Rule 4: LUÔN comment trên Linear khi gặp vấn đề
+Nếu:
+- Không hiểu requirement → Comment hỏi
+- Phát hiện bug mới → Tạo ticket mới hoặc comment
+- Cần thay đổi approach → Comment giải thích
+
+---
+
+## 📋 Workflow bắt buộc
+
+### Khi BẮT ĐẦU task:
+```
+1. Đọc ticket description trên Linear
+2. Đọc comments (có thể có guide từ Claude)
+3. Check PROJECT.md để hiểu architecture
+4. Hỏi nếu chưa rõ
+```
+
+### Khi ĐANG LÀM:
+```
+1. Code theo ticket requirements
+2. Test trên localhost
+3. Commit với [MY-XX] prefix
+```
+
+### Khi HOÀN THÀNH:
+```
+1. ✅ Code done
+2. ✅ Tested locally  
+3. ✅ Committed với [MY-XX]
+4. ✅ Pushed to repo
+5. ✅ Deployed (nếu auto-deploy) hoặc tạo PR
+6. ✅ Tested trên production
+7. ✅ Update Linear status → Done
+8. ✅ Comment trên Linear: "Done. Files: X, Y, Z"
+9. ✅ Update PROJECT.md nếu cần
+```
+
+---
+
+## 🏗️ Architecture (QUAN TRỌNG)
+
+### Unified Timeline
+- Tất cả timezone rows hiển thị CÙNG absolute time range
+- City đầu tiên = reference timezone
+- Mỗi column = cùng moment in time
+
+### URL State
+- Format: `?c=sf,ldn,sgp` (short codes)
+- Backward compatible: `?cities=san-francisco,london`
+- Sync với localStorage
+
+### Routes
+```
+/           → HomePage (main timezone view)
+/about      → AboutPage
+/embed      → EmbedPage (widget)
+/meet/...   → Meeting scheduler (shareable link)
+```
+
+---
+
+## 📁 Key Files
+
+| File | Purpose | Cẩn thận |
+|------|---------|----------|
+| `src/hooks/useUrlState.ts` | URL + localStorage | Có infinite loop fix, đừng phá |
+| `src/hooks/useTimezones.ts` | Timezone calculation | Core logic |
+| `src/utils/calendarUtils.ts` | Calendar URLs | Viral branding |
+| `src/components/MeetingScheduler.tsx` | Meeting modal | Complex state |
+| `src/constants/cities.ts` | 70+ cities | Has short codes |
+
+---
+
+## 🎨 Styling Rules
+
+### Colors (Notion-style)
+| Element | Color |
+|---------|-------|
+| Background | #FAFAFA |
+| Text | #37352F |
+| Border | #E9E9E7 |
+| Accent | #2F81F7 |
+
+### Time Colors
+| Time | Color |
+|------|-------|
+| Night (0-6h, 22-23h) | #EBECED |
+| Morning (8-13h) | #DDEDEA |
+| Afternoon (15-19h) | #DDEBF1 |
+
+### Conventions
+- Mobile-first responsive
+- TailwindCSS utilities
+- Không inline styles
+- Vietnamese comments OK
+
+---
+
+## 🛠️ Tech Stack
+
+- React 19 + TypeScript 5.9
+- Vite 7.2
+- TailwindCSS 3.4
+- Luxon 3.7 (KHÔNG dùng moment.js)
+- @dnd-kit (drag & drop)
+- react-router-dom 7
+
+---
+
+## 🚫 KHÔNG ĐƯỢC LÀM
+
+- ❌ Commit không có [MY-XX]
+- ❌ Để ticket In Progress khi đã done
+- ❌ Dùng moment.js (dùng Luxon)
+- ❌ Hardcode timezone offsets
+- ❌ Inline styles (dùng Tailwind)
+- ❌ Quên test mobile layout
+- ❌ Tạo route mới mà không update App.tsx
+- ❌ Sửa useUrlState.ts mà không hiểu infinite loop fix
+
+---
+
+## 🔗 Quick Links
+
+- **Linear Team:** https://linear.app/mytimezone
+- **Production:** https://mytimezone.online
+- **Embed Test:** https://mytimezone.online/embed?cities=sf,ldn,sgp
+
+---
+
+*AI Team: Claude (Leader) → Linear (Database) → Cursor (Executor)*
+*Cursor PHẢI follow rules này. Claude sẽ review.*
