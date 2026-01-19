@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 
 // Declare Tally type for TypeScript
@@ -48,13 +47,13 @@ export const Footer = () => {
               Feedback
             </button>
             <span className="text-[#D1D5DB]">·</span>
-            <Link
-              to="/embed"
+            <a
+              href="/embed"
               className="text-[#6B7280] hover:text-[#374151] transition-colors"
               title="Get embed code for your website"
             >
               Embed
-            </Link>
+            </a>
             <span className="text-[#D1D5DB]">·</span>
             <button
               onClick={toggleLanguage}

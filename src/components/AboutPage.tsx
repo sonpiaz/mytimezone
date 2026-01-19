@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Footer } from './Footer';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -179,20 +178,20 @@ export const AboutPage = () => {
       <header className="sticky top-0 bg-white border-b border-notion-border z-40">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link
-              to="/"
+            <a
+              href="/"
               className="hover:opacity-80 transition-opacity"
             >
               <h1 className="text-2xl font-semibold text-notion-text">
                 My Time Zone
               </h1>
-            </Link>
-            <Link
-              to="/"
+            </a>
+            <a
+              href="/"
               className="text-sm text-notion-text hover:text-notion-accent transition-colors"
             >
               {content.backToHome}
-            </Link>
+            </a>
           </div>
         </div>
       </header>
@@ -275,12 +274,12 @@ export const AboutPage = () => {
             <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
               {content.embedDesc}
             </p>
-            <Link
-              to="/embed"
+            <a
+              href="/embed"
               className="inline-block mt-4 px-4 py-2 bg-[#191919] text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               {content.getEmbedCode}
-            </Link>
+            </a>
           </section>
 
           {/* About me */}
