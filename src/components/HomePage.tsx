@@ -96,6 +96,11 @@ export function HomePage() {
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, message, type }]);
+    
+    // Auto-dismiss after 2.5 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, 2500);
   };
 
   const removeToast = (id: string) => {
