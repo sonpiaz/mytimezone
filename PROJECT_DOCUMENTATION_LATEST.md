@@ -304,6 +304,13 @@ https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
 ## 📅 DAILY LOG - CẬP NHẬT THEO NGÀY
 
 ### 2025-01-19 (Hôm nay)
+- ✅ **Add Preview Link to Embed Modal (MY-28)** - Thêm link "Open preview in new tab" trong EmbedModal
+  - Link hiển thị bên dưới preview iframe
+  - Link tự động update khi user thay đổi theme hoặc compact option
+  - Format: `https://mytimezone.online/embed?cities=...&theme=...&compact=...`
+  - Files: `EmbedModal.tsx`
+  - Commit: `22c53a4`
+
 - ✅ **About Page Update (MY-24)** - Cập nhật toàn bộ content với đầy đủ sections
   - Thêm đầy đủ sections: About, What it does, When to use, Features, How it compares, How to use, Embed, About me, Questions
   - Multi-language support (EN/VI) với hardcode content trong component
@@ -779,6 +786,7 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 ## 📝 CHANGELOG
 
 ### Version 1.3.1 (2025-01-19)
+- ✅ **Add Preview Link to Embed Modal (MY-28)** - Thêm link "Open preview in new tab" (2025-01-19)
 - ✅ **About Page Full Content Update (MY-24)** - Thêm đầy đủ sections với multi-language support (2025-01-19)
 - ✅ **llms.txt for AI Discovery (MY-24)** - Tạo file public/llms.txt (2025-01-19)
 - ✅ **Fix ?openEmbed=true Auto-Open Modal (MY-24)** - Auto-open EmbedModal từ URL param (2025-01-19)
