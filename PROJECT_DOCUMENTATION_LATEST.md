@@ -803,12 +803,16 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 - `src/constants/cities.ts` - City data với short codes
 
 ### Components
+- `api/stats.ts` - Vercel KV visitor counter API (edge runtime)
+- `src/components/SocialProofBanner.tsx` - Real-time visitor counter component
 - `src/components/HourCell.tsx` - Render từng hour cell với gradient color
 - `src/components/TimeZoneRow.tsx` - Main row component
-- `src/components/CitySearch.tsx` - Search input với fuzzy search
+- `src/components/CitySearch.tsx` - Search input với fuzzy search (useMemo fix for infinite loop)
 - `src/components/MeetingScheduler.tsx` - Meeting Scheduler modal
-- `src/components/Footer.tsx` - Footer với navigation
+- `src/components/Footer.tsx` - Footer với navigation (dùng `<a href>`)
 - `src/components/AboutPage.tsx` - About page với full content (multi-language), SEO, Schema.org JSON-LD
+- `src/components/EmbedGeneratorPage.tsx` - Embed generator page (route: `/embed`)
+- `src/components/EmbedPage.tsx` - Embed widget page (route: `/widget`)
 - `public/llms.txt` - File cho AI discovery với thông tin về MyTimezone
 - `src/components/HomePage.tsx` - Home page component
 
