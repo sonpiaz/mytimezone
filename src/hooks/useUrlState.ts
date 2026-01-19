@@ -122,18 +122,20 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     // Skip if navigating or not on home page to avoid conflicts with routing
     if (isHomePage && !isNavigatingRef.current) {
       const cityParam = encodeCitiesToUrl(newCities); // Returns "sf,ldn,sgp" (not encoded)
-      const newSearchParams = new URLSearchParams(searchParams);
       
       if (cityParam) {
-        // URLSearchParams.set() will automatically encode, so don't encode before
-        newSearchParams.set('c', cityParam);
-        newSearchParams.delete('cities'); // Remove old format
+        // Build URL directly to avoid URLSearchParams encoding comma
+        // Encode each city code individually, but keep comma unencoded
+        const encodedCities = newCities
+          .map(c => encodeURIComponent(c.code))
+          .join(','); // Comma separator NOT encoded
+        const newUrl = `/?c=${encodedCities}`;
+        window.history.replaceState({}, '', newUrl);
       } else {
-        newSearchParams.delete('c');
-        newSearchParams.delete('cities');
+        // Remove params if no cities
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
       }
-      
-      setSearchParams(newSearchParams, { replace: true });
     }
     
     // Also save to localStorage using helper function
@@ -163,20 +165,21 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
       return;
     }
     
-    // Update URL params using React Router
+    // Update URL params - build URL directly to avoid URLSearchParams encoding comma
     const cityParam = encodeCitiesToUrl(cities); // Returns "sf,ldn,sgp" (not encoded)
-    const newSearchParams = new URLSearchParams(searchParams);
     
     if (cityParam) {
-      // URLSearchParams.set() will automatically encode, so don't encode before
-      newSearchParams.set('c', cityParam);
-      newSearchParams.delete('cities'); // Remove old format
+      // Encode each city code individually, but keep comma unencoded
+      const encodedCities = cities
+        .map(c => encodeURIComponent(c.code))
+        .join(','); // Comma separator NOT encoded
+      const newUrl = `/?c=${encodedCities}`;
+      window.history.replaceState({}, '', newUrl);
     } else {
-      newSearchParams.delete('c');
-      newSearchParams.delete('cities');
+      // Remove params if no cities
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
     }
-    
-    setSearchParams(newSearchParams, { replace: true });
   }, [cities, location.pathname, searchParams, setSearchParams]);
 
   // Listen for URL changes (back/forward button) - only on home page
