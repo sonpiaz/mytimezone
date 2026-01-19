@@ -72,6 +72,7 @@
 - Routes:
   - `/` - Home page (main timezone view)
   - `/about` - About page
+  - `/embed` - Embeddable widget (iframe support)
 - URL state management với `useUrlState` hook
 - Infinite loop prevention trong navigation
 
@@ -82,12 +83,14 @@
 ```
 src/
 ├── components/
-│   ├── AboutPage.tsx              # About page với SEO meta tags
+│   ├── AboutPage.tsx              # About page với SEO meta tags + Embed Widget docs
 │   ├── AddToCalendarButton.tsx    # Calendar integration dropdown (NEW)
 │   ├── App.tsx                    # Main app component với routing
 │   ├── CitySearch.tsx             # Search input với fuzzy search
 │   ├── CitySidebar.tsx            # Sidebar hiển thị thông tin thành phố
+│   ├── CompactTimeline.tsx        # Minimal timeline view cho embed widget (NEW)
 │   ├── CurrentTimeLine.tsx        # Đường chỉ giờ hiện tại (vertical line)
+│   ├── EmbedPage.tsx              # Embed widget page (NEW)
 │   ├── ErrorBoundary.tsx          # React Error Boundary
 │   ├── Footer.tsx                 # Footer với navigation
 │   ├── HomePage.tsx               # Home page component
@@ -224,7 +227,34 @@ src/
 - **Meeting Title Input:** User có thể đặt tên meeting
 - **Timezone Info:** Tự động include time range cho mỗi timezone
 
-### 8. Meeting Scheduler
+### 8. Embeddable Widget (NEW - v1.3.0)
+**Tính năng:** Embed timezone view vào bất kỳ website nào với iframe
+
+**URL Format:**
+```
+https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
+```
+
+**Params:**
+- `cities` hoặc `c`: Danh sách city codes (sf, ldn, sgp, etc.)
+- `theme`: `light` (default) hoặc `dark`
+- `compact`: `true` cho minimal height (~150px)
+
+**Features:**
+- Compact timeline view: chỉ hiển thị city name, current time, timezone abbr
+- Light/Dark theme support
+- Responsive width, fixed height
+- Footer với "Powered by mytimezone.online" link
+- CORS headers cho iframe embedding
+- Max 5 cities cho embed view
+- Works trong Notion, Squarespace, WordPress, và bất kỳ nơi nào support iframes
+
+**Documentation:**
+- Section "Embed on your website" trong About page
+- Code snippet với examples
+- Options và usage guide
+
+### 9. Meeting Scheduler
 **Tính năng:** Tự động tìm "Giờ Vàng" họp cho nhiều timezone
 
 **Features:**
@@ -241,7 +271,7 @@ src/
   - Add to Calendar: Dropdown với Google/Outlook/Apple
   - Share Meeting: Copy details với native share
 
-### 9. PWA Support
+### 10. PWA Support
 - Service Worker với Workbox
 - Install prompt với **Fibonacci sequence logic:**
   - Hiện tại lần visit thứ 3, 5, 8, 13, 21, 34...
@@ -250,20 +280,20 @@ src/
 - Offline indicator
 - Update notification
 
-### 10. Routing & Navigation
+### 11. Routing & Navigation
 - React Router DOM với `BrowserRouter`
 - Routes: `/` (Home), `/about` (About)
 - Footer navigation với `window.location.href` (guaranteed navigation)
 - URL state management với infinite loop prevention
 
-### 11. SEO & Meta Tags
+### 12. SEO & Meta Tags
 - OG images với TZ monogram logo
 - Meta tags cho social sharing
 - Schema.org JSON-LD
 - Dynamic title và description cho About page
 - Favicon với version query strings (`?v=2`)
 
-### 12. Error Handling
+### 13. Error Handling
 - ErrorBoundary component
 - Toast notifications cho user feedback
 - Try/catch trong localStorage operations
@@ -271,24 +301,69 @@ src/
 
 ---
 
+## 📅 DAILY LOG - CẬP NHẬT THEO NGÀY
+
+### 2025-01-18 (Hôm nay)
+- ✅ **Embeddable Widget (MY-8)** - Tạo `/embed` route với compact timeline view
+  - Parse URL params: `cities` (hoặc `c`), `theme`, `compact`
+  - CompactTimeline component: minimal view với city name, current time, timezone abbr
+  - Light/Dark theme support
+  - Footer với "Powered by mytimezone.online"
+  - CORS headers trong vercel.json cho iframe embedding (X-Frame-Options: ALLOWALL)
+  - Max 5 cities cho embed view
+  - Responsive width, fixed height based on compact mode
+  - Files: `EmbedPage.tsx`, `CompactTimeline.tsx`
+  - Commit: `4770471`
+
+- ✅ **Embed Widget Documentation (MY-24)** - Thêm section vào About page
+  - Section "Embed on your website" với iframe code snippet
+  - Options và examples
+  - File: `AboutPage.tsx`
+
+### 2025-01-17 (Hôm qua)
+- ✅ **Calendar Description Fix (MY-7)** - Fix duplicate timezone info trong calendar description
+  - Remove duplicate timezone block (chỉ còn 1 block)
+  - Remove bullet points (•)
+  - Timezone abbr ra ngoài ngoặc: PST không phải (PST)
+  - Remove "Compare time zones →" line
+  - Divider đổi thành `___________`
+  - Branding: "Scheduled with → https://mytimezone.online"
+  - Apply cho: Google Calendar, Outlook, Apple Calendar (ICS), Share Meeting
+  - Files: `calendarUtils.ts`, `TimeSlotCard.tsx`, `AddToCalendarButton.tsx`
+  - Commit: `97c7280`
+
+---
+
 ## 🔧 CÁC FIX GẦN ĐÂY
 
 ### Version 1.3.0 (2025-01-18)
 
-#### 1. Calendar Integration với Viral Branding
+#### 1. Embeddable Widget (NEW)
+- ✅ `/embed` route với compact timeline view
+- ✅ Support URL params: `cities` (hoặc `c`), `theme` (light/dark), `compact` (true/false)
+- ✅ CompactTimeline component: minimal view với city name, current time, timezone abbr
+- ✅ Light/Dark theme support
+- ✅ Footer với "Powered by mytimezone.online" link
+- ✅ CORS headers trong vercel.json cho iframe embedding
+- ✅ Max 5 cities cho embed view
+- ✅ Responsive width, fixed height based on compact mode
+- ✅ Embed Widget documentation trong About page
+- Files: `EmbedPage.tsx`, `CompactTimeline.tsx`, `AboutPage.tsx`
+
+#### 2. Calendar Integration với Viral Branding
 - ✅ AddToCalendarButton component với dropdown menu
 - ✅ Support Google Calendar, Outlook, Apple Calendar
 - ✅ Viral branding footer trong mỗi calendar event
 - ✅ Share Meeting button với native share + clipboard
 - ✅ Meeting title input trong MeetingScheduler
 
-#### 2. Simplified Calendar UI
+#### 3. Simplified Calendar UI
 - ✅ Removed "Download .ics" option (redundant)
 - ✅ Removed "Copy meeting details" option (merged với Share Meeting)
 - ✅ Chỉ còn 3 options: Google, Outlook, Apple Calendar
 - ✅ Fixed duplicate timezone info trong calendar description
 
-#### 3. Short URL Codes Implementation
+#### 4. Short URL Codes Implementation
 - ✅ Added `code` field to City interface (2-4 characters)
 - ✅ Short codes cho 70+ cities (sf, nyc, ldn, sgp, etc.)
 - ✅ URL format: `?c=sf,ldn,sgp` thay vì `?cities=san-francisco,london,singapore`
@@ -296,7 +371,7 @@ src/
 - ✅ Backward compatible với old format
 - ✅ Auto-migration: old URLs vẫn work
 
-#### 4. Favicon Cache Fix
+#### 5. Favicon Cache Fix
 - ✅ Added version query strings (`?v=2`) to favicon links
 - ✅ Updated Vercel cache headers cho favicon files
 - ✅ Force revalidate cho favicon và apple-touch-icon
@@ -685,12 +760,15 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 ## 📝 CHANGELOG
 
 ### Version 1.3.0 (2025-01-18)
+- ✅ **Embeddable Widget** - `/embed` route với iframe support (2025-01-18)
+- ✅ **Embed Widget Documentation** - Section trong About page (2025-01-18)
 - ✅ **Calendar Integration** với viral branding
 - ✅ **Simplified Calendar UI** (3 options only)
 - ✅ **Short URL Codes** implementation (56% shorter)
 - ✅ **Favicon cache fix** với version query strings
 - ✅ **Meeting title input** trong MeetingScheduler
 - ✅ **Share Meeting** với native share support
+- ✅ **Calendar Description Fix** - Remove duplicates, update format (2025-01-17)
 
 ### Version 1.2.0 (2025-01-18)
 - ✅ Fix About link navigation (window.location.href)

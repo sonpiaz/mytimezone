@@ -135,6 +135,48 @@ export const AboutPage = () => {
             <li>Share the link with your team</li>
           </ol>
 
+          {/* Embed on your website */}
+          <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
+            Embed on your website
+          </h2>
+
+          <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
+            Add a timezone widget to any website, Notion page, or blog:
+          </p>
+
+          <div className="bg-[#F7F7F5] border border-[#E9E9E7] rounded-lg p-4 mb-4 overflow-x-auto">
+            <pre className="text-sm font-mono text-[#37352F] whitespace-pre-wrap">
+{`<iframe 
+  src="https://mytimezone.online/embed?cities=sf,london,singapore" 
+  width="100%" 
+  height="200"
+  frameborder="0"
+></iframe>`}
+            </pre>
+          </div>
+
+          <div className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
+            <div className="font-medium text-[#191919] mb-2">Options:</div>
+            <ul className="list-disc pl-6 space-y-1 text-[#6B7280]">
+              <li><code className="bg-[#F7F7F5] px-1.5 py-0.5 rounded text-sm">cities</code> - City codes separated by comma (sf, london, tokyo, nyc, sgp...)</li>
+              <li><code className="bg-[#F7F7F5] px-1.5 py-0.5 rounded text-sm">theme</code> - light (default) or dark</li>
+              <li><code className="bg-[#F7F7F5] px-1.5 py-0.5 rounded text-sm">compact</code> - true for smaller height</li>
+            </ul>
+          </div>
+
+          <div className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
+            <div className="font-medium text-[#191919] mb-2">Examples:</div>
+            <ul className="list-disc pl-6 space-y-1 text-[#6B7280]">
+              <li>Light theme: <code className="bg-[#F7F7F5] px-1.5 py-0.5 rounded text-sm">/embed?cities=sf,london&theme=light</code></li>
+              <li>Dark theme: <code className="bg-[#F7F7F5] px-1.5 py-0.5 rounded text-sm">/embed?cities=sf,tokyo&theme=dark</code></li>
+              <li>Compact: <code className="bg-[#F7F7F5] px-1.5 py-0.5 rounded text-sm">/embed?cities=sf,london&compact=true</code></li>
+            </ul>
+          </div>
+
+          <p className="text-base font-normal text-[#6B7280] leading-relaxed mb-12">
+            Works in Notion, Squarespace, WordPress, and anywhere that supports iframes.
+          </p>
+
           {/* About me */}
           <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
             About me
