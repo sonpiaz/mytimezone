@@ -76,6 +76,15 @@ export const EmbedModal = ({ isOpen, onClose, cities }: EmbedModalProps) => {
                   title="Embed preview"
                 />
               </div>
+              <a
+                href={embedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 text-sm text-[#2F81F7] hover:text-[#1E5FD9] hover:underline transition-colors"
+              >
+                <span>🔗</span>
+                <span>Open preview in new tab</span>
+              </a>
             </div>
 
             {/* Options */}
