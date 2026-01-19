@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { City } from '../types';
 import { CitySearch } from './CitySearch';
 import { CompactTimeline } from './CompactTimeline';
@@ -10,6 +10,7 @@ import { getCitiesBySlugs } from '../constants/cities';
 import { Footer } from './Footer';
 
 export const EmbedGeneratorPage = () => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [cities, setCities] = useState<City[]>(() => {
     // Default cities
@@ -18,6 +19,11 @@ export const EmbedGeneratorPage = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [compact, setCompact] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const goHome = () => {
+    console.log('Navigating to home...');
+    navigate('/');
+  };
 
   // Limit to max 5 cities
   const displayCities = cities.slice(0, 5);
@@ -64,21 +70,27 @@ export const EmbedGeneratorPage = () => {
       <header className="sticky top-0 bg-white border-b border-[#E9E9E7] z-40">
         <div className="max-w-2xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link 
-              to="/" 
-              onClick={() => console.log('Logo clicked!')}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            <button
+              onClick={(e) => {
+                console.log('Logo clicked!', e);
+                e.preventDefault();
+                goHome();
+              }}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0"
             >
               <img src="/favicon.svg" alt="TZ" className="w-8 h-8" />
               <span className="text-xl font-semibold text-[#37352F]">My Time Zone</span>
-            </Link>
-            <Link
-              to="/"
-              onClick={() => console.log('Back to Home clicked!')}
-              className="text-sm text-[#6B7280] hover:text-[#374151] transition-colors flex items-center gap-1 cursor-pointer"
+            </button>
+            <button
+              onClick={(e) => {
+                console.log('Back to Home clicked!', e);
+                e.preventDefault();
+                goHome();
+              }}
+              className="text-sm text-[#6B7280] hover:text-[#374151] transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
             >
               ← Back to Home
-            </Link>
+            </button>
           </div>
         </div>
       </header>
