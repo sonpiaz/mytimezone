@@ -9,6 +9,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/embed" element={<EmbedPage />} />
+      <Route path="/meet/:cities/:hours/:duration/:date" element={<HomePage />} />
     </Routes>
   );
 }

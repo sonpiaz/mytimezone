@@ -12,9 +12,16 @@ interface MeetingSchedulerProps {
   onClose: () => void;
   cities: City[];  // Current cities from timeline
   onCopy?: () => void;
+  initialConfig?: {
+    participants?: string[];
+    workingHours?: { start: number; end: number };
+    duration?: number;
+    date?: string;
+    title?: string;
+  } | null;
 }
 
-export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSchedulerProps) => {
+export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy, initialConfig }: MeetingSchedulerProps) => {
   const { t } = useTranslation();
   
   // State - Initialize from localStorage
@@ -35,9 +42,27 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
   // Click outside to close modal
   useClickOutside(modalRef, onClose, isOpen);
 
-  // Initialize participants from cities
+  // Initialize participants from cities or initialConfig
   useEffect(() => {
-    if (cities.length > 0) {
+    if (initialConfig?.participants && initialConfig.participants.length > 0) {
+      // Use initialConfig participants
+      const loadedParticipants: Participant[] = [];
+      for (let i = 0; i < initialConfig.participants.length; i++) {
+        const code = initialConfig.participants[i];
+        const city = findCityByCodeOrSlug(code);
+        if (city) {
+          loadedParticipants.push({
+            city,
+            isSelected: true,
+            isHost: i === 0, // First city is host
+          });
+        }
+      }
+      if (loadedParticipants.length > 0) {
+        setParticipants(loadedParticipants);
+      }
+    } else if (cities.length > 0) {
+      // Fallback to cities from timeline
       setParticipants(
         cities.map((city, index) => ({
           city,
@@ -46,7 +71,7 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
         }))
       );
     }
-  }, [cities]);
+  }, [cities, initialConfig]);
 
   const toggleParticipant = (index: number) => {
     setParticipants((prev) => {

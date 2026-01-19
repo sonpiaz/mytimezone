@@ -5,6 +5,10 @@
   "installCommand": "npm install",
   "rewrites": [
     {
+      "source": "/meet/(.*)",
+      "destination": "/"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

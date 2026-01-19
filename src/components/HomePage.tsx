@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   DndContext,
   closestCenter,
@@ -46,9 +46,22 @@ export function HomePage() {
     console.log('=== HOME PAGE RENDERED ===');
   }, []);
   
+  // Parse URL params for shareable meeting link
+  const params = useParams<{ cities?: string; hours?: string; duration?: string; date?: string }>();
+  const [searchParams] = useSearchParams();
+  const titleParam = searchParams.get('title');
+  
   const [cities, setCities] = useUrlState();
   const [showScheduler, setShowScheduler] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [meetingConfig, setMeetingConfig] = useState<{
+    participants?: string[];
+    workingHours?: { start: number; end: number };
+    duration?: number;
+    date?: string;
+    title?: string;
+  } | null>(null);
+  
   // Always use today's date (no date navigation needed)
   const selectedDate = new Date();
   const { timezoneData, currentHourColumn } = useTimezones(cities, selectedDate);
@@ -445,9 +458,13 @@ export function HomePage() {
       {showScheduler && (
         <MeetingScheduler
           isOpen={showScheduler}
-          onClose={() => setShowScheduler(false)}
+          onClose={() => {
+            setShowScheduler(false);
+            setMeetingConfig(null); // Clear config when closing
+          }}
           cities={cities}
-          onCopy={() => showToast(t('meetingLinkCopied'), 'success')}
+          onCopy={() => showToast(t('meetingLinkCopied') || 'Link copied!', 'success')}
+          initialConfig={meetingConfig}
         />
       )}
 
