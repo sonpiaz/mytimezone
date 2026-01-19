@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 
 // Declare Tally type for TypeScript
@@ -9,11 +10,7 @@ declare global {
   }
 }
 
-interface FooterProps {
-  onEmbedClick?: () => void;
-}
-
-export const Footer = ({ onEmbedClick }: FooterProps) => {
+export const Footer = () => {
   const { language, toggleLanguage, t } = useTranslation();
   const TALLY_FORM_ID = '2EAzEp';
 
@@ -51,13 +48,13 @@ export const Footer = ({ onEmbedClick }: FooterProps) => {
               Feedback
             </button>
             <span className="text-[#D1D5DB]">·</span>
-            <button
-              onClick={onEmbedClick}
+            <Link
+              to="/embed-generator"
               className="text-[#6B7280] hover:text-[#374151] transition-colors"
               title="Get embed code for your website"
             >
               Embed
-            </button>
+            </Link>
             <span className="text-[#D1D5DB]">·</span>
             <button
               onClick={toggleLanguage}
