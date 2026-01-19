@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Footer } from './Footer';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -274,12 +275,12 @@ export const AboutPage = () => {
             <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
               {content.embedDesc}
             </p>
-            <a
-              href="/?openEmbed=true"
+            <Link
+              to="/embed-generator"
               className="inline-block mt-4 px-4 py-2 bg-[#191919] text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               {content.getEmbedCode}
-            </a>
+            </Link>
           </section>
 
           {/* About me */}
