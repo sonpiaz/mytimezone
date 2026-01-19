@@ -54,6 +54,16 @@ export function HomePage() {
   const [cities, setCities] = useUrlState();
   const [showScheduler, setShowScheduler] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+
+  // Detect ?openEmbed=true and auto-open EmbedModal
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('openEmbed') === 'true') {
+      setShowEmbedModal(true);
+      // Clean URL - remove query param
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
   const [meetingConfig, setMeetingConfig] = useState<{
     participants?: string[];
     workingHours?: { start: number; end: number };

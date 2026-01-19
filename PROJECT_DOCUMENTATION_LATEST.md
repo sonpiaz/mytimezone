@@ -1,6 +1,6 @@
 # 📚 TÀI LIỆU DỰ ÁN: MY TIME ZONE
-**Last Updated:** 2025-01-18  
-**Version:** 1.3.0  
+**Last Updated:** 2025-01-19  
+**Version:** 1.3.1  
 **Status:** ✅ Production Ready
 
 ---
@@ -83,7 +83,7 @@
 ```
 src/
 ├── components/
-│   ├── AboutPage.tsx              # About page với SEO meta tags + Embed Widget docs
+│   ├── AboutPage.tsx              # About page với full content (multi-language), SEO meta tags, Schema.org JSON-LD
 │   ├── AddToCalendarButton.tsx    # Calendar integration dropdown (NEW)
 │   ├── App.tsx                    # Main app component với routing
 │   ├── CitySearch.tsx             # Search input với fuzzy search
@@ -303,7 +303,29 @@ https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
 
 ## 📅 DAILY LOG - CẬP NHẬT THEO NGÀY
 
-### 2025-01-18 (Hôm nay)
+### 2025-01-19 (Hôm nay)
+- ✅ **About Page Update (MY-24)** - Cập nhật toàn bộ content với đầy đủ sections
+  - Thêm đầy đủ sections: About, What it does, When to use, Features, How it compares, How to use, Embed, About me, Questions
+  - Multi-language support (EN/VI) với hardcode content trong component
+  - Update meta tags và Schema.org JSON-LD theo language
+  - Link "Son Piaz" đến https://x.com/sonxpiaz
+  - "Get Embed Code" button links to /?openEmbed=true
+  - Files: `AboutPage.tsx`
+  - Commit: `4c0872e`
+
+- ✅ **llms.txt for AI Discovery (MY-24)** - Tạo file cho AI discovery
+  - File `public/llms.txt` với thông tin về MyTimezone
+  - Content: About, Main Features, Key Pages, How It Works, Embedding, Technical Details
+  - Files: `public/llms.txt`
+  - Commit: `4c0872e`
+
+- ✅ **Fix ?openEmbed=true Auto-Open Modal (MY-24)** - Bug fix
+  - Thêm useEffect trong HomePage.tsx để detect `?openEmbed=true` param
+  - Tự động mở EmbedModal khi có param
+  - Clean URL sau khi mở modal (remove query param)
+  - Files: `HomePage.tsx`
+
+### 2025-01-18
 - ✅ **Embeddable Widget (MY-8)** - Tạo `/embed` route với compact timeline view
   - Parse URL params: `cities` (hoặc `c`), `theme`, `compact`
   - CompactTimeline component: minimal view với city name, current time, timezone abbr
@@ -314,11 +336,6 @@ https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
   - Responsive width, fixed height based on compact mode
   - Files: `EmbedPage.tsx`, `CompactTimeline.tsx`
   - Commit: `4770471`
-
-- ✅ **Embed Widget Documentation (MY-24)** - Thêm section vào About page
-  - Section "Embed on your website" với iframe code snippet
-  - Options và examples
-  - File: `AboutPage.tsx`
 
 ### 2025-01-17 (Hôm qua)
 - ✅ **Calendar Description Fix (MY-7)** - Fix duplicate timezone info trong calendar description
@@ -717,7 +734,8 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 - `src/components/CitySearch.tsx` - Search input với fuzzy search
 - `src/components/MeetingScheduler.tsx` - Meeting Scheduler modal
 - `src/components/Footer.tsx` - Footer với navigation
-- `src/components/AboutPage.tsx` - About page với SEO
+- `src/components/AboutPage.tsx` - About page với full content (multi-language), SEO, Schema.org JSON-LD
+- `public/llms.txt` - File cho AI discovery với thông tin về MyTimezone
 - `src/components/HomePage.tsx` - Home page component
 
 ### Routing
@@ -741,7 +759,8 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 - Error handling (ErrorBoundary + Toast)
 - PWA support với Fibonacci install prompt
 - Routing với React Router DOM
-- About page với SEO
+- About page với full content (multi-language), SEO, Schema.org JSON-LD
+- llms.txt cho AI discovery
 - OG images với TZ monogram logo
 - Infinite loop fixes
 - Navigation fixes
@@ -758,6 +777,11 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 ---
 
 ## 📝 CHANGELOG
+
+### Version 1.3.1 (2025-01-19)
+- ✅ **About Page Full Content Update (MY-24)** - Thêm đầy đủ sections với multi-language support (2025-01-19)
+- ✅ **llms.txt for AI Discovery (MY-24)** - Tạo file public/llms.txt (2025-01-19)
+- ✅ **Fix ?openEmbed=true Auto-Open Modal (MY-24)** - Auto-open EmbedModal từ URL param (2025-01-19)
 
 ### Version 1.3.0 (2025-01-18)
 - ✅ **Embeddable Widget** - `/embed` route với iframe support (2025-01-18)
