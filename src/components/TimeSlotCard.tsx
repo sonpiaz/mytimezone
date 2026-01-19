@@ -3,8 +3,8 @@ import { DateTime } from 'luxon';
 import type { TimeSlot } from '../types/meetingScheduler';
 import { getMeetingDateTime } from '../utils/meetingScheduler';
 import { AddToCalendarButton } from './AddToCalendarButton';
+import { generateShareText, copyToClipboard, type CalendarEventParams } from '../utils/calendarUtils';
 import { useTranslation } from '../hooks/useTranslation';
-import { getFlagEmoji } from '../utils/flagEmoji';
 
 interface TimeSlotCardProps {
   slot: TimeSlot;
@@ -32,56 +32,64 @@ export const TimeSlotCard = ({
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
-  // Generate meeting text to share (with full details)
-  const generateMeetingText = (): string => {
-    const lines = slot.participants.map(p => {
-      const flag = getFlagEmoji(p.city.country);
-      return `${flag} ${p.city.name}: ${p.startTime} - ${p.endTime}, ${p.date}`;
+  // Handle share click - use native share on mobile, clipboard on desktop
+  const shareLink = async () => {
+    // Prepare timezone info for generateShareText
+    const meetingData = getMeetingDateTime(slot, selectedDate);
+    const startDateTime = DateTime.fromJSDate(meetingData.startTime);
+    const durationMinutes = duration * 60;
+    
+    const timezones = slot.participants.map(p => {
+      const startLocal = startDateTime.setZone(p.city.timezone);
+      const endLocal = startLocal.plus({ minutes: durationMinutes });
+      const startStr = startLocal.toFormat('h:mm a');
+      const endStr = endLocal.toFormat('h:mm a');
+      const abbr = startLocal.toFormat('ZZZZ');
+      
+      // Handle next day indicator
+      const endDateStr = endLocal.toFormat('M/d');
+      const startDateStr = startLocal.toFormat('M/d');
+      const nextDayIndicator = endDateStr !== startDateStr ? ' +1' : '';
+      
+      return {
+        cityName: p.city.name,
+        timezone: p.city.timezone,
+        localTime: `${startStr} - ${endStr}${nextDayIndicator} (${abbr})`,
+      };
     });
 
-    // Get city slugs for URL
-    const citySlugs = slot.participants.map(p => p.city.slug).join(',');
-    const baseUrl = window.location.origin;
-    const shareUrl = `${baseUrl}?cities=${citySlugs}`;
+    const eventParams: CalendarEventParams = {
+      title: meetingTitle,
+      startTime: startDateTime,
+      duration: durationMinutes,
+      timezones,
+    };
 
-    return `Meeting Time:\n${lines.join('\n')}\n\nView timezones: ${shareUrl}`;
-  };
-
-  // Handle share click with proper error handling
-  const shareLink = async () => {
-    const meetingText = generateMeetingText();
+    const shareText = generateShareText(eventParams);
     
-    try {
-      // Try modern clipboard API (requires HTTPS or localhost)
-      await navigator.clipboard.writeText(meetingText);
+    // Try native share first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: meetingTitle,
+          text: shareText,
+        });
+        onCopy?.();
+        return;
+      } catch (err) {
+        // User cancelled or error - fall through to clipboard
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Share failed:', err);
+        }
+      }
+    }
+    
+    // Fallback: copy to clipboard
+    const success = await copyToClipboard(shareText);
+    if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      // onCopy will show toast: "Meeting link copied! Share with participants"
       onCopy?.();
-    } catch (err) {
-      // Fallback for older browsers or HTTP (not HTTPS)
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = meetingText;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '0';
-        textArea.setAttribute('readonly', '');
-        document.body.appendChild(textArea);
-        textArea.select();
-        textArea.setSelectionRange(0, meetingText.length); // For mobile devices
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-        onCopy?.();
-      } catch (fallbackErr) {
-        console.error('Failed to copy to clipboard:', fallbackErr);
-        // Still show feedback even if copy fails
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
     }
   };
 
@@ -127,19 +135,23 @@ export const TimeSlotCard = ({
           const durationMinutes = duration * 60;
           
           const timezones = slot.participants.map(p => {
-            const localTime = DateTime.fromJSDate(meetingData.startTime)
-              .setZone(p.city.timezone)
-              .toFormat('h:mm a');
+            const startLocal = DateTime.fromJSDate(meetingData.startTime)
+              .setZone(p.city.timezone);
+            const endLocal = startLocal.plus({ minutes: durationMinutes });
             
-            // Get timezone abbreviation
-            const tzAbbr = DateTime.fromJSDate(meetingData.startTime)
-              .setZone(p.city.timezone)
-              .toFormat('ZZZZ');
+            const startStr = startLocal.toFormat('h:mm a');
+            const endStr = endLocal.toFormat('h:mm a');
+            const abbr = startLocal.toFormat('ZZZZ');
+            
+            // Handle next day indicator
+            const endDateStr = endLocal.toFormat('M/d');
+            const startDateStr = startLocal.toFormat('M/d');
+            const nextDayIndicator = endDateStr !== startDateStr ? ' +1' : '';
             
             return {
               cityName: p.city.name,
               timezone: p.city.timezone,
-              localTime: `${localTime} (${tzAbbr})`,
+              localTime: `${startStr} - ${endStr}${nextDayIndicator} (${abbr})`,
             };
           });
 

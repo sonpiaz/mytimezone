@@ -14,6 +14,8 @@ export interface CalendarEventParams {
 
 /**
  * Generate timezone reference text for calendar description
+ * Includes time range for each timezone (no duplicates)
+ * Note: localTime already includes time range from TimeSlotCard
  */
 export function generateTimezoneReference(
   timezones: Array<{ cityName: string; timezone: string; localTime: string }>
@@ -157,17 +159,30 @@ export function generateShareText(params: CalendarEventParams): string {
   
   const dateStr = startTime.toFormat('cccc, LLLL d, yyyy');
   
-  const tzLines = timezones.map(tz => `  • ${tz.cityName}: ${tz.localTime}`).join('\n');
+  const tzLines = timezones.map(tz => {
+    const startLocal = startTime.setZone(tz.timezone);
+    const endLocal = startLocal.plus({ minutes: duration });
+    const startStr = startLocal.toFormat('h:mm a');
+    const endStr = endLocal.toFormat('h:mm a');
+    const abbr = startLocal.toFormat('ZZZZ'); // PST, GMT, etc.
+    
+    // Handle next day indicator
+    const endDateStr = endLocal.toFormat('M/d');
+    const startDateStr = startLocal.toFormat('M/d');
+    const nextDayIndicator = endDateStr !== startDateStr ? ' +1' : '';
+    
+    return `• ${tz.cityName}: ${startStr} - ${endStr}${nextDayIndicator} (${abbr})`;
+  }).join('\n');
   
   return `📅 ${title}
 📆 ${dateStr}
-⏱️ ${duration} minutes
 
 🌍 Time zones:
 ${tzLines}
 
 ━━━━━━━━━━━━━━━━━━━━
-Scheduled with https://mytimezone.online`;
+Scheduled with mytimezone.online
+https://mytimezone.online`;
 }
 
 /**
