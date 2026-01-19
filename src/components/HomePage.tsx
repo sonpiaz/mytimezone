@@ -28,6 +28,7 @@ import { CitySearch } from './CitySearch';
 import { ShareButton } from './ShareButton';
 import { ToastManager } from './Toast';
 import { MeetingScheduler } from './MeetingScheduler';
+import { EmbedModal } from './EmbedModal';
 import { OfflineIndicator } from './OfflineIndicator';
 import { InstallPrompt } from './InstallPrompt';
 import { Footer } from './Footer';
@@ -47,6 +48,7 @@ export function HomePage() {
   
   const [cities, setCities] = useUrlState();
   const [showScheduler, setShowScheduler] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
   // Always use today's date (no date navigation needed)
   const selectedDate = new Date();
   const { timezoneData, currentHourColumn } = useTimezones(cities, selectedDate);
@@ -211,6 +213,28 @@ export function HomePage() {
               
               {/* Share Button - Ghost style */}
               <ShareButton t={t} cities={cities} />
+              
+              {/* Embed Button */}
+              <button
+                onClick={() => setShowEmbedModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#374151] hover:bg-[#F3F4F6] rounded-md transition-colors font-normal"
+                title="Embed Widget"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                  />
+                </svg>
+                <span className="hidden sm:inline">&lt;/&gt;</span>
+              </button>
               
               {/* Find Best Time - Primary CTA */}
               {cities.length >= 2 && (
@@ -429,6 +453,13 @@ export function HomePage() {
           onCopy={() => showToast(t('meetingLinkCopied'), 'success')}
         />
       )}
+
+      {/* Embed Modal */}
+      <EmbedModal
+        isOpen={showEmbedModal}
+        onClose={() => setShowEmbedModal(false)}
+        cities={cities}
+      />
     </div>
   );
 }
