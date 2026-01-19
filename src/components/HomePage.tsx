@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   DndContext,
   closestCenter,
@@ -33,6 +33,7 @@ import { OfflineIndicator } from './OfflineIndicator';
 import { InstallPrompt } from './InstallPrompt';
 import { Footer } from './Footer';
 import type { City } from '../types';
+import { findCityBySlug } from '../constants/cities';
 
 interface Toast {
   id: string;
@@ -45,11 +46,6 @@ export function HomePage() {
   useEffect(() => {
     console.log('=== HOME PAGE RENDERED ===');
   }, []);
-  
-  // Parse URL params for shareable meeting link
-  const params = useParams<{ cities?: string; hours?: string; duration?: string; date?: string }>();
-  const [searchParams] = useSearchParams();
-  const titleParam = searchParams.get('title');
   
   const [cities, setCities] = useUrlState();
   const [showScheduler, setShowScheduler] = useState(false);
@@ -222,6 +218,10 @@ export function HomePage() {
               <p className="text-sm text-notion-textLight mt-1 hidden md:block">
                 {t('subtitle')}
               </p>
+              {/* Visitor Counter - MY-31 */}
+              {/* <p className="text-sm text-gray-400 mt-1">
+                📊 500+ people used this today
+              </p> */}
             </div>
             <div className="flex items-center gap-2">
               {/* Share Button - Ghost style */}
@@ -253,6 +253,29 @@ export function HomePage() {
             onAddCity={handleAddCity}
             t={t}
           />
+          
+          {/* Quick Add Chips - MY-30 */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-500">Popular:</span>
+            {['tokyo', 'london', 'new-york', 'singapore', 'sydney'].map((slug) => {
+              const city = cities.find(c => c.slug === slug);
+              if (city) return null; // Hide if already added
+              
+              // Find city from constants
+              const popularCity = findCityBySlug(slug);
+              if (!popularCity) return null;
+              
+              return (
+                <button
+                  key={slug}
+                  onClick={() => handleAddCity(popularCity)}
+                  className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  {popularCity.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Timezone Rows */}
