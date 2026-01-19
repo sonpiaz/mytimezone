@@ -113,6 +113,7 @@ function HomePageComponent() {
   // Sensors configuration
   // Desktop: PointerSensor (mouse) with distance constraint
   // Mobile: TouchSensor with long press (500ms delay)
+  // IMPORTANT: Exclude Footer and links from drag detection
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {

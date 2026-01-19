@@ -72,7 +72,16 @@ src/
 
 ## 📝 Recent Updates
 
-### Latest Fixes (2024)
+### Latest Fixes (2025-01-18)
+
+- ✅ **About Link Navigation Fix** - Sử dụng `useNavigate` thay vì `Link` để tránh DndContext conflicts
+- ✅ **Infinite Loop Fix** - Fix "Maximum update depth exceeded" trong `useUrlState` hook
+- ✅ **OG Image Placeholder** - Thêm SVG placeholder cho social sharing
+- ✅ **SEO Optimization** - Update meta tags và Schema.org JSON-LD
+- ✅ **PWA Support** - Install prompt với smart logic (chỉ hiện sau lần visit đầu tiên)
+- ✅ **Routing** - React Router DOM với About page
+
+### Previous Fixes (2024)
 
 - ✅ **Time Indicator Position Fix** - Sử dụng DOM position trực tiếp thay vì tính toán
 - ✅ **Layout Alignment** - Sidebar và Timeline align đúng trên desktop

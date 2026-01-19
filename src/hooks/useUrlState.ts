@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { City } from '../types';
 import { getCitiesFromUrl, updateUrlParams } from '../utils/urlHelpers';
 import { getCitiesBySlugs } from '../constants/cities';
@@ -8,13 +9,25 @@ import { saveCities, loadCities } from '../utils/storageHelpers';
 // Keep old key for backward compatibility, but also use new helper functions
 const STORAGE_KEY = 'my-timezone-cities-order';
 
+// Helper function to compare cities arrays
+const areCitiesEqual = (a: City[], b: City[]): boolean => {
+  if (a.length !== b.length) return false;
+  return a.every((city, index) => city.id === b[index]?.id);
+};
+
 export const useUrlState = (): [City[], (cities: City[]) => void] => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+  const isUpdatingRef = useRef(false);
+  const citiesRef = useRef<City[]>([]);
+
   const [cities, setCities] = useState<City[]>(() => {
     // 1. Check URL params first (highest priority)
     const urlSlugs = getCitiesFromUrl();
     if (urlSlugs.length > 0) {
       const urlCities = getCitiesBySlugs(urlSlugs);
       if (urlCities.length > 0) {
+        citiesRef.current = urlCities;
         return urlCities;
       }
     }
@@ -40,6 +53,7 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
           if (!loadCities()) {
             saveCities(slugs);
           }
+          citiesRef.current = savedCities;
           return savedCities;
         }
       }
@@ -57,6 +71,7 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     try {
       const autoDetectedCities = getDefaultCities();
       if (autoDetectedCities.length > 0) {
+        citiesRef.current = autoDetectedCities;
         return autoDetectedCities;
       }
     } catch (error) {
@@ -64,12 +79,29 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
 
     // 4. Final fallback to hardcoded defaults
-    return getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
+    const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
+    citiesRef.current = defaultCities;
+    return defaultCities;
   });
 
+  // Keep citiesRef in sync with cities state
+  useEffect(() => {
+    citiesRef.current = cities;
+  }, [cities]);
+
   const updateCities = (newCities: City[]) => {
+    // Prevent infinite loop: only update if cities actually changed
+    if (areCitiesEqual(cities, newCities)) {
+      return;
+    }
+
+    isUpdatingRef.current = true;
     setCities(newCities);
-    updateUrlParams(newCities);
+    
+    // Only update URL params when on home page to avoid conflicts with routing
+    if (isHomePage) {
+      updateUrlParams(newCities);
+    }
     
     // Also save to localStorage using helper function
     try {
@@ -84,19 +116,43 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
       console.warn('Failed to save cities to localStorage:', e);
       // Silently fail - localStorage is not critical
     }
+    
+    // Reset flag after state update
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 0);
   };
 
-  // Listen for URL changes (back/forward button)
+  // Listen for URL changes (back/forward button) - only on home page
   useEffect(() => {
+    // Only listen to popstate when on home page
+    if (!isHomePage) {
+      return;
+    }
+
     const handlePopState = () => {
+      // Prevent infinite loop: skip if we're currently updating
+      if (isUpdatingRef.current) {
+        return;
+      }
+
       const slugs = getCitiesFromUrl();
       const newCities = getCitiesBySlugs(slugs);
-      setCities(newCities);
+      
+      // Use ref to compare, not state (to avoid dependency on cities)
+      // Only update if cities actually changed
+      if (!areCitiesEqual(citiesRef.current, newCities)) {
+        isUpdatingRef.current = true;
+        setCities(newCities);
+        setTimeout(() => {
+          isUpdatingRef.current = false;
+        }, 0);
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [isHomePage]); // Only depend on isHomePage, not cities
 
   return [cities, updateCities];
 };

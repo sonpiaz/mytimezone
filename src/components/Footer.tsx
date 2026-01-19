@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // Declare Tally type for TypeScript
 declare global {
@@ -10,6 +10,7 @@ declare global {
 }
 
 export const Footer = () => {
+  const navigate = useNavigate();
   const TALLY_FORM_ID = '2EAzEp';
 
   const openFeedback = () => {
@@ -24,18 +25,24 @@ export const Footer = () => {
     }
   };
 
+  const handleAboutClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/about');
+  };
+
   return (
     <footer className="bg-[#FAFAFA] border-t border-[#F3F4F6] mt-auto">
       <div className="max-w-6xl mx-auto px-6 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Left: Links */}
           <div className="flex items-center gap-4 text-sm">
-            <Link
-              to="/about"
-              className="text-[#6B7280] hover:text-[#374151] transition-colors"
+            <button
+              onClick={handleAboutClick}
+              className="text-[#6B7280] hover:text-[#374151] transition-colors cursor-pointer"
             >
               About
-            </Link>
+            </button>
             <span className="text-[#D1D5DB]">·</span>
             <button
               onClick={openFeedback}

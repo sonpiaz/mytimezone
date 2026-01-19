@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#FFFFFF"/>
+  
+  <!-- Decorative border -->
+  <rect x="0" y="0" width="1200" height="630" fill="none" stroke="#E9E9E7" stroke-width="2"/>
+  
+  <!-- Logo/Icon -->
+  <g transform="translate(100, 80)">
+    <circle cx="60" cy="60" r="50" fill="#191919"/>
+    <text x="60" y="75" font-size="60" text-anchor="middle" fill="white">🌍</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="200" y="120" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#191919">
+    My Time Zone
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="180" font-family="Arial, sans-serif" font-size="32" fill="#6B7280">
+    Compare time zones worldwide
+  </text>
+  <text x="200" y="220" font-family="Arial, sans-serif" font-size="32" fill="#6B7280">
+    Find the best meeting time for your team
+  </text>
+  
+  <!-- Example times -->
+  <g transform="translate(200, 300)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="36" fill="#191919">
+      🇺🇸 San Francisco    9:00 AM
+    </text>
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="36" fill="#191919">
+      🇬🇧 London              5:00 PM
+    </text>
+    <text x="0" y="120" font-family="Arial, sans-serif" font-size="36" fill="#191919">
+      🇸🇬 Singapore          1:00 AM
+    </text>
+  </g>
+  
+  <!-- Domain -->
+  <text x="200" y="550" font-family="Arial, sans-serif" font-size="28" fill="#9CA3AF">
+    mytimezone.online
+  </text>
+  
+  <!-- Badge -->
+  <g transform="translate(900, 80)">
+    <rect x="0" y="0" width="200" height="60" rx="8" fill="#ECFDF5"/>
+    <text x="100" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#059669">
+      100% Free
+    </text>
+  </g>
+</svg>

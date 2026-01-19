@@ -1,0 +1,577 @@
+# 📚 TÀI LIỆU DỰ ÁN: MY TIME ZONE
+**Last Updated:** 2025-01-18  
+**Version:** 1.2.0  
+**Status:** ✅ Production Ready
+
+---
+
+## 🎯 TỔNG QUAN
+
+**My Time Zone** là ứng dụng web miễn phí để xem và so sánh múi giờ của các thành phố trên thế giới. Ứng dụng cho phép người dùng:
+
+- ✅ Xem nhiều timezone cùng lúc trên một timeline thống nhất
+- ✅ Thêm/xóa thành phố với fuzzy search thông minh
+- ✅ Drag & drop để sắp xếp lại thứ tự
+- ✅ Share link với URL encoding
+- ✅ Meeting Scheduler - Tìm "Giờ Vàng" họp cho nhiều timezone
+- ✅ Responsive design (mobile-first)
+- ✅ PWA support với install prompt
+- ✅ Multi-language (Tiếng Việt / English)
+- ✅ SEO optimized với OG images
+
+**Live URL:** https://mytimezone.online
+
+---
+
+## 🛠️ TECH STACK
+
+### Core
+- **React 19.2.0** + **TypeScript 5.9.3**
+- **Vite 7.2.4** - Build tool
+- **TailwindCSS 3.4.1** - Styling
+- **Luxon 3.7.2** - Timezone handling
+
+### Libraries
+- **@dnd-kit/core 6.3.1** - Drag & drop
+- **@dnd-kit/sortable 10.0.0** - Sortable components
+- **react-router-dom 7.12.0** - Client-side routing
+- **@vercel/analytics 1.6.1** - Analytics
+
+### PWA
+- **vite-plugin-pwa 1.2.0** - PWA support
+- Service Worker với Workbox
+- Install prompt với smart logic
+
+### Deployment
+- **Platform:** Vercel
+- **Analytics:** Google Analytics + Vercel Analytics
+- **Domain:** mytimezone.online
+
+---
+
+## 🏗️ KIẾN TRÚC CORE
+
+### Unified Timeline Architecture
+
+**Điểm quan trọng nhất:** Tất cả các timezone rows hiển thị **CÙNG MỘT absolute time range**, chỉ khác nhau về cách hiển thị local time.
+
+- Mỗi cột (column) đại diện cho **CÙNG MỘT moment in time**
+- Các timezone khác nhau hiển thị local hour của họ tại cùng moment đó
+- Ví dụ: 18h tại SF = 9h tại HCM = 2h tại London (cùng một cột)
+
+### Reference Timezone System
+
+- Thành phố đầu tiên trong danh sách là "reference timezone"
+- Timeline được tính toán dựa trên reference timezone
+- Current hour indicator chỉ hiển thị khi đang xem "Today"
+
+### Routing Architecture
+
+- **React Router DOM** với `BrowserRouter` wrap toàn bộ app
+- Routes:
+  - `/` - Home page (main timezone view)
+  - `/about` - About page
+- URL state management với `useUrlState` hook
+- Infinite loop prevention trong navigation
+
+---
+
+## 📁 CẤU TRÚC THƯ MỤC
+
+```
+src/
+├── components/
+│   ├── AboutPage.tsx              # About page với SEO meta tags
+│   ├── App.tsx                    # Main app component với routing
+│   ├── CitySearch.tsx             # Search input với fuzzy search
+│   ├── CitySidebar.tsx            # Sidebar hiển thị thông tin thành phố
+│   ├── CurrentTimeLine.tsx        # Đường chỉ giờ hiện tại (vertical line)
+│   ├── ErrorBoundary.tsx          # React Error Boundary
+│   ├── Footer.tsx                 # Footer với navigation (useNavigate)
+│   ├── HourCell.tsx               # Component cho từng hour cell
+│   ├── InstallPrompt.tsx          # PWA install prompt
+│   ├── MeetingScheduler.tsx       # Meeting Scheduler modal
+│   ├── MobileTimezoneView.tsx     # Mobile layout
+│   ├── OfflineIndicator.tsx       # Offline status indicator
+│   ├── ResultSection.tsx          # Result section cho Meeting Scheduler
+│   ├── ShareButton.tsx            # Share URL button
+│   ├── SortableTimeZoneRow.tsx    # Wrapper cho drag & drop
+│   ├── TimeSlotCard.tsx           # Time slot card cho Meeting Scheduler
+│   ├── TimeZoneRow.tsx            # Main timezone row component
+│   ├── TimelineGrid.tsx           # Timeline grid component
+│   ├── Toast.tsx                  # Toast notification system
+│   └── UpdateNotification.tsx     # Service worker update notification
+│
+├── constants/
+│   ├── cities.ts                  # Danh sách 100+ thành phố với timezone data
+│   ├── layout.ts                  # Layout constants (widths, heights, breakpoints)
+│   ├── timeColors.ts              # Time-of-day color constants (Notion-style)
+│   ├── theme.ts                   # Design system (Notion-style colors)
+│   └── translations.ts            # i18n translations (VI/EN)
+│
+├── hooks/
+│   ├── useClickOutside.ts         # Click outside detection
+│   ├── useHoveredHour.ts         # Quản lý hover state trên timeline
+│   ├── useTimezones.ts           # Core hook: tính toán timezone data
+│   ├── useTimelineLayout.ts      # Responsive layout calculation
+│   ├── useTranslation.ts         # i18n hook
+│   └── useUrlState.ts             # URL state management + localStorage (với infinite loop fix)
+│
+├── types/
+│   ├── index.ts                   # TypeScript type definitions
+│   └── meetingScheduler.ts       # Types cho Meeting Scheduler
+│
+└── utils/
+    ├── colorUtils.ts              # Color interpolation & gradient functions
+    ├── flagEmoji.ts               # Flag emoji utilities
+    ├── formatHelpers.ts           # Format functions (location, offset, time, colors)
+    ├── fuzzySearch.ts             # Fuzzy search logic cho CitySearch
+    ├── meetingScheduler.ts       # Meeting Scheduler algorithm
+    ├── storageHelpers.ts          # localStorage helpers
+    ├── timezoneDetect.ts          # Auto-detect user timezone
+    ├── timezoneHelpers.ts         # Timezone calculation utilities
+    └── urlHelpers.ts              # URL encoding/decoding helpers
+```
+
+---
+
+## 🎨 TÍNH NĂNG CHÍNH
+
+### 1. Unified Timeline View
+- Tất cả timezone rows align theo cùng absolute time
+- Mỗi cột = cùng moment in time
+- Current hour indicator (vertical line) chỉ hiển thị khi viewing "Today"
+
+### 2. Gradient Time-of-Day Colors (Notion-style)
+**Màu sắc mềm mại, hài hòa:**
+
+| Khung giờ | Màu | Hex Code |
+|-----------|-----|----------|
+| 0-6h, 22-23h | Night | `#EBECED` (Notion Gray) |
+| 7h | Transition | Night → Morning (50%) |
+| 8-13h | Morning | `#DDEDEA` (Notion Green) |
+| 14h | Transition | Morning → Afternoon (50%) |
+| 15-19h | Afternoon | `#DDEBF1` (Notion Blue) |
+| 20-21h | Transition | Afternoon → Night (33-66%) |
+
+### 3. City Search với Fuzzy Search
+- Search input thay vì dropdown
+- Fuzzy search logic:
+  - Case-insensitive
+  - Diacritic-insensitive
+  - Partial matches
+  - Common abbreviations (sf, nyc, hcm)
+  - Search across: name, country, state, timezone abbreviation, GMT offset
+
+### 4. Drag & Drop
+- Sử dụng `@dnd-kit`
+- Reorder cities bằng cách kéo thả
+- Order được lưu vào URL và localStorage
+- Thành phố đầu tiên = reference timezone
+
+### 5. Responsive Design
+- **Desktop (>1024px):** Auto-fit 24 columns, no scroll
+- **Mobile (<1024px):** Horizontal scroll, sticky sidebar
+- Sidebar width: 300px (desktop), 320px (mobile)
+- Column width: Dynamic (desktop), 24px fixed (mobile)
+
+### 6. URL Sharing
+- Cities encoded in URL params: `?cities=san-francisco,new-york,london`
+- Sync với localStorage
+- Share button với native share API fallback
+
+### 7. Meeting Scheduler
+**Tính năng:** Tự động tìm "Giờ Vàng" họp cho nhiều timezone
+
+**Features:**
+- Select/deselect participants từ timeline
+- Set working hours (mặc định 9-18)
+- Chọn duration (30min, 1hr, 1.5hr, 2hr)
+- Chọn date
+- Include weekends checkbox
+- **Results phân loại:**
+  - ✅ Perfect: Tất cả trong giờ làm việc
+  - ⚠️ Good: 1 người hơi ngoài giờ
+  - 🔶 Acceptable: 2 người ngoài giờ
+- **Actions:**
+  - Schedule: Mở Google Calendar với event đã điền
+  - Copy Times: Copy tất cả timezones vào clipboard
+  - Email: Mở mail client với subject/body đã điền
+
+### 8. PWA Support
+- Service Worker với Workbox
+- Install prompt với smart logic:
+  - Chỉ hiện sau lần visit đầu tiên (lần 2 trở đi)
+  - Không hiện nếu user đã dismiss
+  - Delay 3 giây trước khi hiện
+- Offline indicator
+- Update notification
+
+### 9. Routing & Navigation
+- React Router DOM với `BrowserRouter`
+- Routes: `/` (Home), `/about` (About)
+- Footer navigation với `useNavigate` (fix infinite loop)
+- URL state management với infinite loop prevention
+
+### 10. SEO & Meta Tags
+- OG images (SVG placeholder: `public/og-image.svg`)
+- Meta tags cho social sharing
+- Schema.org JSON-LD
+- Dynamic title và description cho About page
+
+### 11. Error Handling
+- ErrorBoundary component
+- Toast notifications cho user feedback
+- Try/catch trong localStorage operations
+- Validation cho URL params
+
+---
+
+## 🔧 CÁC FIX GẦN ĐÂY
+
+### 1. About Link Navigation Fix (2025-01-18)
+**Vấn đề:** Click "About" ở Footer không navigate, phải refresh page.
+
+**Nguyên nhân:** DndContext sensors có thể intercept click events từ Link component.
+
+**Giải pháp:**
+- Thay `<Link>` bằng `<button>` với `useNavigate()`
+- Thêm `e.preventDefault()` và `e.stopPropagation()`
+- File: `src/components/Footer.tsx`
+
+### 2. Infinite Loop Fix (2025-01-18)
+**Vấn đề:** "Maximum update depth exceeded" khi navigate từ About về Home.
+
+**Nguyên nhân:** `useUrlState` hook gây infinite loop:
+- `popstate` event trigger `setCities`
+- `setCities` trigger `updateUrlParams`
+- URL change có thể trigger lại `popstate`
+
+**Giải pháp:**
+- Thêm `areCitiesEqual()` helper để so sánh cities
+- Sử dụng `useRef` để tránh dependency loop
+- Chỉ listen `popstate` khi ở home page
+- Chỉ update URL params khi ở home page
+- File: `src/hooks/useUrlState.ts`
+
+### 3. OG Image Placeholder (2025-01-18)
+- Tạo SVG placeholder: `public/og-image.svg` (1200x630)
+- Update meta tags trong `index.html`
+- Support cho Facebook, Twitter, LinkedIn sharing
+
+---
+
+## 📊 DATA STRUCTURES
+
+### City Interface:
+```typescript
+interface City {
+  id: string;
+  name: string;
+  nameVi: string;
+  country: string;
+  state?: string;        // Optional, cho US cities
+  timezone: string;      // IANA format (e.g., "America/Los_Angeles")
+  slug: string;          // URL-friendly (e.g., "san-francisco")
+}
+```
+
+### TimeZoneData Interface:
+```typescript
+interface TimeZoneData {
+  city: City;
+  currentTime: string;
+  formattedTime: string;      // "9:17p Sat, Jan 17"
+  formattedDate: string;        // "Sat, Jan 17"
+  dayOfWeek: string;            // "Sat"
+  gmtOffset: string;            // "GMT-8"
+  timezoneAbbr: string;        // "PST"
+  hours: HourData[];
+  isReference: boolean;        // True nếu là city đầu tiên
+  offsetFromReference?: number; // +15, +8, -6, etc.
+}
+```
+
+### HourData Interface:
+```typescript
+interface HourData {
+  columnIndex: number;         // 0-23, cùng cho tất cả timezones
+  referenceHour: number;       // Hour trong reference timezone
+  localHour: number;           // Hour trong local timezone
+  localDate: Date;
+  displayLabel: string;        // "18" (chỉ số giờ)
+  isNextDay: boolean;
+  isPreviousDay: boolean;
+  isBusinessHour: boolean;      // 9am-5pm local time
+  isCurrentHour: boolean;       // Current hour trong reference timezone
+  dayName?: string;            // "SAT", "SUN" cho date labels
+  dateLabel?: string;           // "JAN 17", "JAN 18" cho date labels
+  isNewDay?: boolean;          // True khi bắt đầu ngày mới (localHour === 0)
+}
+```
+
+---
+
+## 🔄 DATA FLOW
+
+### 1. Initial Load
+```
+URL params → useUrlState → localStorage fallback → auto-detect → default cities
+↓
+useTimezones → getTimeZoneData → generateTimeSlots
+↓
+TimeZoneData[] → Components render
+```
+
+### 2. Navigation Flow
+```
+User clicks About → useNavigate('/about') → React Router → AboutPage renders
+↓
+User clicks Back → useNavigate('/') → React Router → HomePageComponent renders
+↓
+useUrlState syncs với URL params (với infinite loop prevention)
+```
+
+### 3. Add/Remove City
+```
+CitySearch → handleAddCity/handleRemoveCity
+↓
+setCities → useUrlState → updateUrlParams + localStorage
+↓
+useTimezones recalculates với cities mới
+```
+
+### 4. Drag & Drop
+```
+DragEnd event → handleDragEnd
+↓
+arrayMove → setCities → useUrlState
+↓
+First city becomes reference timezone
+↓
+useTimezones recalculates với reference mới
+```
+
+---
+
+## 🎨 DESIGN SYSTEM
+
+### Colors (Notion-style)
+- Background: `#FAFAFA` (notion-bg)
+- Text: `#37352F` (notion-text)
+- Text Light: `#9B9A97` (notion-textLight)
+- Border: `#E9E9E7` (notion-border)
+- Hover: `#F7F6F3` (notion-hover)
+- Accent: `#2F81F7` (notion-accent)
+
+### Typography
+- Font: Inter (Google Fonts)
+- Sizes: 11px (xs) → 24px (2xl)
+- Letter spacing: -0.01em
+
+### Layout Constants
+```typescript
+BREAKPOINT_DESKTOP = 1024
+MIN_COLUMN_WIDTH = 24
+MOBILE_COLUMN_WIDTH = 24
+SIDEBAR_WIDTH_DESKTOP = 300
+SIDEBAR_WIDTH_MOBILE = 320
+DATE_HEADER_HEIGHT = 24
+HOUR_ROW_HEIGHT_DESKTOP = 56
+HOUR_ROW_HEIGHT_MOBILE = 48
+HOURS_PER_DAY = 24
+MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
+```
+
+---
+
+## 🚀 DEPLOYMENT
+
+### Vercel Configuration
+- **Build command:** `npm run build`
+- **Output directory:** `dist`
+- **Framework:** Vite
+- **SPA routing:** Rewrites trong `vercel.json`
+
+### Analytics
+- Google Analytics (gtag.js) trong `index.html`
+- Vercel Analytics (`@vercel/analytics`) trong `main.tsx`
+
+### PWA
+- Service Worker với Workbox
+- Manifest file: `public/manifest.webmanifest`
+- Icons: `public/icons/`
+
+---
+
+## 📦 DEPENDENCIES
+
+```json
+{
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@vercel/analytics": "^1.6.1",
+    "luxon": "^3.7.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.12.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4",
+    "vite-plugin-pwa": "^1.2.0"
+  }
+}
+```
+
+---
+
+## 🧪 TESTING CHECKLIST
+
+### Core Features
+- [x] Timeline alignment: Tất cả rows align đúng
+- [x] Gradient colors: Màu chuyển dần theo localHour
+- [x] Current hour indicator: Chỉ hiển thị khi viewing Today
+- [x] Drag & drop: Reorder cities hoạt động
+- [x] URL sharing: Share link load đúng cities
+- [x] Mobile responsive: Sidebar sticky, timeline scrollable
+
+### Navigation
+- [x] About link navigation: Click About → navigate đúng
+- [x] Back button: Click Back → navigate về home
+- [x] Direct URL access: `/about` → hiển thị About page
+- [x] No infinite loop: Navigate qua lại không crash
+
+### City Search
+- [x] Fuzzy search tìm được cities
+- [x] Click outside to close
+- [x] Keyboard navigation
+- [x] Abbreviations (sf, nyc, hcm)
+
+### Meeting Scheduler
+- [x] Select/deselect participants
+- [x] Working hours selector
+- [x] Duration selector
+- [x] Date picker
+- [x] Results phân loại đúng
+- [x] Google Calendar link
+- [x] Copy Times
+- [x] Email sharing
+
+### PWA
+- [x] Install prompt logic đúng
+- [x] Service worker registration
+- [x] Offline indicator
+- [x] Update notification
+
+---
+
+## 💡 KEY INSIGHTS
+
+1. **Unified Timeline:** Tất cả rows phải align theo cùng absolute time - đây là core architecture
+2. **Reference Timezone:** City đầu tiên là reference, timeline tính theo timezone này
+3. **Gradient Colors:** Màu được tính theo `localHour` của từng timezone, không phải reference hour
+4. **Navigation:** Dùng `useNavigate` thay vì `Link` khi có DndContext để tránh event conflicts
+5. **Infinite Loop Prevention:** Luôn check state changes trước khi update, sử dụng refs để tránh dependency loops
+6. **Mobile Layout:** Sidebar sticky, timeline scrollable riêng biệt
+
+---
+
+## 📚 FILES QUAN TRỌNG
+
+### Core Logic
+- `src/hooks/useTimezones.ts` - Tính toán timezone data
+- `src/utils/timezoneHelpers.ts` - `generateTimeSlots()`, `getTimeZoneData()`
+- `src/utils/colorUtils.ts` - `getHourColorSmooth()` - Gradient color calculation
+- `src/utils/meetingScheduler.ts` - Meeting Scheduler algorithm
+- `src/hooks/useUrlState.ts` - URL + localStorage sync (với infinite loop fix)
+
+### Components
+- `src/components/HourCell.tsx` - Render từng hour cell với gradient color
+- `src/components/TimeZoneRow.tsx` - Main row component
+- `src/components/CitySearch.tsx` - Search input với fuzzy search
+- `src/components/MeetingScheduler.tsx` - Meeting Scheduler modal
+- `src/components/Footer.tsx` - Footer với navigation (useNavigate)
+- `src/components/AboutPage.tsx` - About page với SEO
+
+### Routing
+- `src/main.tsx` - Entry point với BrowserRouter
+- `src/App.tsx` - Routes configuration
+- `vercel.json` - Vercel deployment config
+
+---
+
+## 🎯 TRẠNG THÁI HIỆN TẠI
+
+### ✅ Hoàn thành:
+- Unified timeline architecture
+- Drag & drop reordering
+- Gradient time-of-day colors (Notion-style)
+- City Search với fuzzy search
+- Responsive design
+- URL sharing
+- Meeting Scheduler với scoring algorithm
+- Error handling (ErrorBoundary + Toast)
+- PWA support với install prompt
+- Routing với React Router DOM
+- About page với SEO
+- OG images
+- Infinite loop fixes
+- Navigation fixes
+
+### 📋 Có thể cải thiện:
+- Keyboard shortcuts
+- Favorite city combinations
+- Calendar export
+- More timezone abbreviations
+- Dark mode
+- More languages
+
+---
+
+## 📝 CHANGELOG
+
+### Version 1.2.0 (2025-01-18)
+- ✅ Fix About link navigation (useNavigate thay vì Link)
+- ✅ Fix infinite loop trong useUrlState
+- ✅ Add OG image placeholder
+- ✅ Update SEO meta tags
+
+### Version 1.1.0 (2025-01-XX)
+- ✅ Meeting Scheduler
+- ✅ PWA support
+- ✅ Multi-language support
+
+### Version 1.0.0 (2025-01-XX)
+- ✅ Initial release
+- ✅ Unified timeline
+- ✅ Drag & drop
+- ✅ Gradient colors
+- ✅ City Search
+
+---
+
+**Author:** Son Piaz  
+**License:** MIT  
+**Repository:** (GitHub URL)  
+**Live URL:** https://mytimezone.online
+
+---
+
+*Tài liệu này cung cấp ngữ cảnh đầy đủ cho AI assistant và developers khi tiếp tục phát triển dự án.*
