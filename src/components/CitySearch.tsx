@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import type { City } from '../types';
 import { fuzzySearchCities } from '../utils/fuzzySearch';
 import { getGMTOffset } from '../utils/timezoneHelpers';
@@ -47,8 +47,10 @@ export const CitySearch = ({ selectedCities, onAddCity, t }: CitySearchProps) =>
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Get existing city slugs
-  const existingCitySlugs = selectedCities.map((city) => city.slug);
+  // Get existing city slugs - memoize to prevent infinite loop
+  const existingCitySlugs = useMemo(() => {
+    return selectedCities.map((city) => city.slug);
+  }, [selectedCities]);
 
   // Filter cities when query changes
   useEffect(() => {
