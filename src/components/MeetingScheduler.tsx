@@ -27,6 +27,7 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
   const [duration, setDuration] = useState(savedSettings.meetingDuration / 60); // Convert minutes to hours
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [results, setResults] = useState<SchedulerResult | null>(null);
+  const [meetingTitle, setMeetingTitle] = useState('Team Meeting');
   
   // Ref for modal content (to detect clicks outside)
   const modalRef = useRef<HTMLDivElement>(null);
@@ -179,6 +180,20 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
             </div>
           </div>
 
+          {/* Meeting Title */}
+          <div className="mb-4">
+            <label className="text-sm font-medium text-notion-text mb-2 block">
+              Meeting Title:
+            </label>
+            <input
+              type="text"
+              value={meetingTitle}
+              onChange={(e) => setMeetingTitle(e.target.value)}
+              placeholder="Enter meeting title"
+              className="w-full px-3 py-2 border border-notion-border rounded-lg text-sm text-notion-text bg-white hover:bg-notion-hover focus:ring-2 focus:ring-[#191919] focus:border-transparent transition-notion"
+            />
+          </div>
+
           {/* Duration */}
           <div className="mb-4">
             <label className="text-sm font-medium text-notion-text mb-2 block">
@@ -252,6 +267,7 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
                   selectedDate={selectedDate}
                   duration={duration}
                   referenceTimezone={participants.find(p => p.isHost)?.city.timezone || participants[0]?.city.timezone || 'UTC'}
+                  meetingTitle={meetingTitle}
                 />
               )}
 
@@ -265,6 +281,7 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
                   selectedDate={selectedDate}
                   duration={duration}
                   referenceTimezone={participants.find(p => p.isHost)?.city.timezone || participants[0]?.city.timezone || 'UTC'}
+                  meetingTitle={meetingTitle}
                 />
               )}
 

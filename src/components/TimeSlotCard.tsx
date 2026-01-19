@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { DateTime } from 'luxon';
 import type { TimeSlot } from '../types/meetingScheduler';
 import { getMeetingDateTime } from '../utils/meetingScheduler';
-import { CalendarPopup } from './CalendarPopup';
+import { AddToCalendarButton } from './AddToCalendarButton';
 import { useTranslation } from '../hooks/useTranslation';
 import { getFlagEmoji } from '../utils/flagEmoji';
 
@@ -14,6 +15,7 @@ interface TimeSlotCardProps {
   referenceTimezone: string;
   isLast?: boolean; // Để ẩn divider ở card cuối cùng
   isFirst?: boolean; // Để style primary button cho slot đầu tiên
+  meetingTitle?: string;
 }
 
 export const TimeSlotCard = ({ 
@@ -21,14 +23,14 @@ export const TimeSlotCard = ({
   variant: _variant, 
   onCopy,
   selectedDate,
-  duration: _duration,
+  duration,
   referenceTimezone: _referenceTimezone,
   isLast = false,
   isFirst = false,
+  meetingTitle = 'Team Meeting',
 }: TimeSlotCardProps) => {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const [showCalendarPopup, setShowCalendarPopup] = useState(false);
 
   // Generate meeting text to share (with full details)
   const generateMeetingText = (): string => {
@@ -117,20 +119,43 @@ export const TimeSlotCard = ({
 
       {/* Action buttons */}
       <div className="flex gap-3 mt-4">
-        {/* Add to Calendar button - Primary for first slot, Ghost for others */}
-        <button
-          onClick={() => setShowCalendarPopup(true)}
-          className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${
-            isFirst
-              ? 'bg-[#191919] text-white hover:bg-[#333333]'
-              : 'bg-transparent text-[#37352F] border border-[#E5E5E5] hover:bg-[#F7F7F5] hover:border-[#D1D1D1]'
-          }`}
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {t('addToCalendar') || 'Add to Calendar'}
-        </button>
+        {/* Add to Calendar button - Using new AddToCalendarButton component */}
+        {(() => {
+          // Prepare timezone info for AddToCalendarButton
+          const meetingData = getMeetingDateTime(slot, selectedDate);
+          const startDateTime = DateTime.fromJSDate(meetingData.startTime);
+          const durationMinutes = duration * 60;
+          
+          const timezones = slot.participants.map(p => {
+            const localTime = DateTime.fromJSDate(meetingData.startTime)
+              .setZone(p.city.timezone)
+              .toFormat('h:mm a');
+            
+            // Get timezone abbreviation
+            const tzAbbr = DateTime.fromJSDate(meetingData.startTime)
+              .setZone(p.city.timezone)
+              .toFormat('ZZZZ');
+            
+            return {
+              cityName: p.city.name,
+              timezone: p.city.timezone,
+              localTime: `${localTime} (${tzAbbr})`,
+            };
+          });
+
+          return (
+            <AddToCalendarButton
+              title={meetingTitle}
+              startTime={startDateTime}
+              duration={durationMinutes}
+              timezones={timezones}
+              description={meetingData.description}
+              onSuccess={() => {
+                onCopy?.();
+              }}
+            />
+          );
+        })()}
         
         {/* Share Meeting button - với feedback khi copy */}
         <button
@@ -163,13 +188,6 @@ export const TimeSlotCard = ({
       {!isLast && (
         <div className="mt-4 border-t border-[#E3E3E3]"></div>
       )}
-
-      {/* Calendar Popup */}
-      <CalendarPopup
-        isOpen={showCalendarPopup}
-        onClose={() => setShowCalendarPopup(false)}
-        meetingData={getMeetingDateTime(slot, selectedDate)}
-      />
     </div>
   );
 };

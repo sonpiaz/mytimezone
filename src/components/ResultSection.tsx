@@ -11,6 +11,7 @@ interface ResultSectionProps {
   selectedDate: Date;
   duration: number;
   referenceTimezone: string;
+  meetingTitle?: string;
 }
 
 export const ResultSection = ({ 
@@ -21,6 +22,7 @@ export const ResultSection = ({
   selectedDate,
   duration,
   referenceTimezone,
+  meetingTitle,
 }: ResultSectionProps) => {
   const { language } = useTranslation();
   
@@ -47,6 +49,7 @@ export const ResultSection = ({
             referenceTimezone={referenceTimezone}
             isLast={index === topSlots.length - 1}
             isFirst={index === 0}
+            meetingTitle={meetingTitle}
           />
         ))}
         {slots.length > 5 && (
