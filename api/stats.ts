@@ -10,9 +10,9 @@ export default async function handler(request: Request) {
   
   try {
     if (request.method === 'POST') {
-      // Increment and return
       const count = await kv.incr(key);
-      await kv.expire(key, 60 * 60 * 24 * 7); // Keep 7 days
+      await kv.expire(key, 60 * 60 * 24 * 7);
+      await kv.incr('visitors:total');
       
       return new Response(JSON.stringify({ today: count }), {
         headers: { 
@@ -31,8 +31,7 @@ export default async function handler(request: Request) {
       }
     });
   } catch (error) {
-    // Fallback if KV not configured
-    return new Response(JSON.stringify({ today: 0, error: 'KV not configured' }), {
+    return new Response(JSON.stringify({ today: 0 }), {
       headers: { 'Content-Type': 'application/json' }
     });
   }

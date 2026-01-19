@@ -21,7 +21,6 @@ export function SocialProofBanner() {
           sessionStorage.setItem(sessionKey, today);
         }
       } catch (error) {
-        console.log('Stats API not available');
         setCount(null);
       }
     };
