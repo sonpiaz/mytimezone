@@ -1,6 +1,6 @@
 # 📚 TÀI LIỆU DỰ ÁN: MY TIME ZONE
 **Last Updated:** 2025-01-19  
-**Version:** 1.3.2  
+**Version:** 1.3.3  
 **Status:** ✅ Production Ready
 
 ---
@@ -16,7 +16,7 @@
 - ✅ **Short URL Codes** - Share link với URL ngắn gọn (56% shorter)
 - ✅ **Calendar Integration** - Add to Calendar với viral branding
 - ✅ Meeting Scheduler - Tìm "Giờ Vàng" họp cho nhiều timezone
-- ✅ **Visitor Counter** - Social proof "500+ people used this today"
+- ✅ **Visitor Counter** - Real-time social proof với Vercel KV, hiển thị "X people used this today" (dynamic: 5, 50+, 100+, 500+)
 - ✅ Responsive design (mobile-first)
 - ✅ PWA support với install prompt
 - ✅ Multi-language (Tiếng Việt / English)
@@ -307,6 +307,34 @@ https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
 ## 📅 DAILY LOG - CẬP NHẬT THEO NGÀY
 
 ### 2025-01-19 (Hôm nay)
+- ✅ **Vercel KV Visitor Counter (MY-34)** - Real-time visitor counting với Upstash KV
+  - API route `/api/stats` với edge runtime
+  - POST để increment counter, GET để read
+  - Session storage để tránh double-count (mỗi user 1 lần/ngày)
+  - Dynamic display: `5`, `50+`, `100+`, `500+` tùy theo count
+  - Files: `api/stats.ts`, `src/components/SocialProofBanner.tsx`
+  - Commit: `9098e6f`, `d3df2e4`, `1bedc1b`
+
+- ✅ **Fix Toast Auto-Dismiss (MY-36)** - Toast tự động dismiss sau 2.5 giây
+  - Đổi màu info từ blue (`bg-notion-accent`) sang dark gray (`bg-gray-900`)
+  - Duration: 3000ms → 2500ms
+  - Files: `src/components/Toast.tsx`
+  - Commit: `372afc3`
+
+- ✅ **Fix Infinite Loop in CitySearch (MY-6)** - Prevent infinite loop trong useEffect
+  - Dùng `useMemo` để memoize `existingCitySlugs` array
+  - Array chỉ được tạo lại khi `selectedCities` thay đổi
+  - Files: `src/components/CitySearch.tsx`
+  - Commit: `3090a8b`
+
+- ✅ **Navigation Fixes (MY-33, MY-5, MY-6)** - Fix navigation conflicts
+  - Dùng `<a href>` thay vì React Router `<Link>` để bypass conflicts
+  - Fix navigation trên `/embed` và `/about` pages
+  - useUrlState chỉ chạy trên homepage (early return)
+  - Route updates: `/embed-generator` → `/embed` (generator), `/embed` → `/widget` (widget)
+  - Files: `src/components/AboutPage.tsx`, `src/components/EmbedGeneratorPage.tsx`, `src/components/Footer.tsx`, `src/hooks/useUrlState.ts`, `src/App.tsx`, `vercel.json`
+  - Commits: `03bd89e`, `0417a44`, `d019a67`, `712d06d`
+
 - ✅ **Quick Add Chips for Popular Cities (MY-30)** - Thêm chips "Popular: [Tokyo] [London] [New York] [Singapore] [Sydney]" bên dưới search box
   - Click chip → add city vào timeline
   - Ẩn chip nếu city đã được add
@@ -315,12 +343,13 @@ https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
   - Files: `HomePage.tsx`
   - Commit: `80c1a09`
 
-- ✅ **Visitor Counter for Social Proof (MY-31)** - Thêm "500+ people used this today" bên dưới tagline
+- ✅ **Visitor Counter for Social Proof (MY-31)** - Thêm social proof banner bên dưới tagline
   - Style: text-sm, text-gray-400, subtle
-  - Hardcode số 500+ (phase 1)
+  - Phase 1: Hardcode số 500+ (commit `f3f1c17`)
+  - Phase 2: Real-time với Vercel KV (commit `9098e6f`)
   - Mục đích: Tăng trust và social proof
-  - Files: `HomePage.tsx`
-  - Commit: `f3f1c17`
+  - Files: `src/components/HomePage.tsx`, `src/components/SocialProofBanner.tsx`
+  - Commits: `f3f1c17`, `9098e6f`
 
 - ✅ **Fix Emoji Rendering (MY-32)** - Replace tất cả emoji bằng text để tránh hiển thị "?" trên production
   - Xóa/replace: 📊 ✨ 🔗 🌍 📅 📆
@@ -807,9 +836,11 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 - About page với full content (multi-language), SEO, Schema.org JSON-LD
 - llms.txt cho AI discovery
 - OG images với TZ monogram logo
-- Infinite loop fixes
-- Navigation fixes
+- Infinite loop fixes (useUrlState, CitySearch)
+- Navigation fixes (dùng `<a href>` thay vì React Router)
 - Favicon cache fixes
+- **Vercel KV Visitor Counter** - Real-time counting với Upstash KV
+- **Toast improvements** - Auto-dismiss, correct colors
 
 ### 📋 Có thể cải thiện:
 - Keyboard shortcuts
@@ -822,6 +853,14 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 ---
 
 ## 📝 CHANGELOG
+
+### Version 1.3.3 (2025-01-19)
+- ✅ **Vercel KV Visitor Counter (MY-34)** - Real-time visitor counting với Upstash KV, API route `/api/stats`, session-based tracking để tránh double-count (2025-01-19)
+- ✅ **Fix Toast Auto-Dismiss (MY-36)** - Toast tự động dismiss sau 2.5 giây, đổi màu info từ blue sang dark gray để match design system (2025-01-19)
+- ✅ **Fix Infinite Loop in CitySearch (MY-6)** - Dùng `useMemo` để memoize `existingCitySlugs` array, prevent infinite loop trong useEffect (2025-01-19)
+- ✅ **Navigation Fixes (MY-33, MY-5, MY-6)** - Dùng `<a href>` thay vì React Router `<Link>` để bypass conflicts, fix navigation trên `/embed` và `/about` pages (2025-01-19)
+- ✅ **useUrlState Only on Homepage** - Early return nếu không phải homepage để prevent conflicts với React Router navigation (2025-01-19)
+- ✅ **Route Updates** - `/embed-generator` → `/embed` (generator), `/embed` → `/widget` (widget để embed) (2025-01-19)
 
 ### Version 1.3.2 (2025-01-19)
 - ✅ **Quick Add Chips for Popular Cities (MY-30)** - Thêm chips "Popular: [Tokyo] [London] [New York] [Singapore] [Sydney]" bên dưới search box để tăng conversion (2025-01-19)
