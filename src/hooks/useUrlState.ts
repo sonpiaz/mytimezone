@@ -22,6 +22,15 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   const isNavigatingRef = useRef(false);
   const citiesRef = useRef<City[]>([]);
 
+  // DEBUG: Log initialization
+  if (typeof window !== 'undefined') {
+    console.log('=== useUrlState INIT ===');
+    console.log('URL:', window.location.href);
+    console.log('Search params:', window.location.search);
+    console.log('Pathname:', location.pathname);
+    console.log('Is HomePage:', isHomePage);
+  }
+
   // CRITICAL: Only sync URL on homepage - return early on other pages
   // This prevents conflicts with React Router navigation
   if (!isHomePage) {
@@ -31,9 +40,11 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   }
 
   const [cities, setCities] = useState<City[]>(() => {
+    console.log('=== INITIAL STATE FUNCTION ===');
+    
     // Only parse URL if on home page
     if (location.pathname !== '/') {
-      // Not on home page, return defaults
+      console.log('Not on home page, using defaults');
       const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
       citiesRef.current = defaultCities;
       return defaultCities;
@@ -41,11 +52,18 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
 
     // 1. Check URL params first (highest priority)
     // getCitiesFromUrl now returns City[] directly (supports both old and new format)
+    console.log('Parsing cities from URL...');
     const urlCities = getCitiesFromUrl();
+    console.log('URL cities parsed:', urlCities);
+    console.log('URL cities length:', urlCities.length);
+    
     if (urlCities.length > 0) {
+      console.log('Using URL cities');
       citiesRef.current = urlCities;
       return urlCities;
     }
+    
+    console.log('No URL cities, checking localStorage...');
 
     // 2. Check localStorage (second priority)
     // Try new helper function first, then fallback to old key for backward compatibility

@@ -49,6 +49,15 @@ export function HomePage() {
   }, []);
   
   const [cities, setCities] = useUrlState();
+  
+  // DEBUG: Log cities state
+  useEffect(() => {
+    console.log('=== HomePage Cities State ===');
+    console.log('Cities:', cities);
+    console.log('Cities length:', cities.length);
+    console.log('Cities IDs:', cities.map(c => c.id));
+  }, [cities]);
+  
   const [showScheduler, setShowScheduler] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
 

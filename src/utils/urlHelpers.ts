@@ -33,19 +33,25 @@ export function encodeCitiesToUrl(cities: City[]): string {
  * Input: "sf,ldn,sgp" OR "san-francisco,london,singapore"
  */
 export function decodeCitiesFromUrl(param: string | null): City[] {
-  if (!param || typeof param !== 'string') return [];
+  if (!param || typeof param !== 'string') {
+    console.log('decodeCitiesFromUrl - param is null or not string:', param);
+    return [];
+  }
   
   try {
     const identifiers = param.split(',').map(s => s.trim()).filter(Boolean);
+    console.log('decodeCitiesFromUrl - identifiers:', identifiers);
     const result: City[] = [];
     
     for (const id of identifiers) {
       const city = findCityByCodeOrSlug(id);
+      console.log(`decodeCitiesFromUrl - id "${id}" -> city:`, city);
       if (city) {
         result.push(city);
       }
     }
     
+    console.log('decodeCitiesFromUrl - result:', result);
     // Validate: max 10 cities to prevent URL length issues
     return result.slice(0, 10);
   } catch (error) {
@@ -61,11 +67,15 @@ export function decodeCitiesFromUrl(param: string | null): City[] {
 export const getCitiesFromUrl = (): City[] => {
   try {
     const urlParams = new URLSearchParams(window.location.search);
+    console.log('getCitiesFromUrl - search:', window.location.search);
     
     // Try new format first: ?c=sf,ldn,sgp
     const shortParam = urlParams.get('c');
+    console.log('getCitiesFromUrl - shortParam (c):', shortParam);
+    
     if (shortParam) {
       const cities = decodeCitiesFromUrl(shortParam);
+      console.log('getCitiesFromUrl - decoded cities from shortParam:', cities);
       if (cities.length > 0) {
         return cities;
       }
@@ -73,13 +83,17 @@ export const getCitiesFromUrl = (): City[] => {
     
     // Fallback to old format: ?cities=san-francisco,london
     const oldParam = urlParams.get('cities');
+    console.log('getCitiesFromUrl - oldParam (cities):', oldParam);
+    
     if (oldParam) {
       const cities = decodeCitiesFromUrl(oldParam);
+      console.log('getCitiesFromUrl - decoded cities from oldParam:', cities);
       if (cities.length > 0) {
         return cities;
       }
     }
     
+    console.log('getCitiesFromUrl - no cities found, returning []');
     return [];
   } catch (error) {
     console.error('Failed to get cities from URL:', error);
