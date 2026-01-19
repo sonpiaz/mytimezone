@@ -64,13 +64,18 @@ export const EmbedGeneratorPage = () => {
       <header className="sticky top-0 bg-white border-b border-[#E9E9E7] z-40">
         <div className="max-w-2xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Link 
+              to="/" 
+              onClick={() => console.log('Logo clicked!')}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <img src="/favicon.svg" alt="TZ" className="w-8 h-8" />
               <span className="text-xl font-semibold text-[#37352F]">My Time Zone</span>
             </Link>
             <Link
               to="/"
-              className="text-sm text-[#6B7280] hover:text-[#374151] transition-colors flex items-center gap-1"
+              onClick={() => console.log('Back to Home clicked!')}
+              className="text-sm text-[#6B7280] hover:text-[#374151] transition-colors flex items-center gap-1 cursor-pointer"
             >
               ← Back to Home
             </Link>
