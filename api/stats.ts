@@ -1,8 +1,6 @@
 import { kv } from '@vercel/kv';
 
-export const config = {
-  runtime: 'edge',
-};
+export const config = { runtime: 'edge' };
 
 export default async function handler(request: Request) {
   const today = new Date().toISOString().split('T')[0];
@@ -12,23 +10,14 @@ export default async function handler(request: Request) {
     if (request.method === 'POST') {
       const count = await kv.incr(key);
       await kv.expire(key, 60 * 60 * 24 * 7);
-      await kv.incr('visitors:total');
-      
       return new Response(JSON.stringify({ today: count }), {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
     }
     
-    // GET - just read
     const count = (await kv.get<number>(key)) || 0;
     return new Response(JSON.stringify({ today: count }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
     return new Response(JSON.stringify({ today: 0 }), {
