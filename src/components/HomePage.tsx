@@ -32,6 +32,7 @@ import { EmbedModal } from './EmbedModal';
 import { OfflineIndicator } from './OfflineIndicator';
 import { InstallPrompt } from './InstallPrompt';
 import { Footer } from './Footer';
+import { SocialProofBanner } from './SocialProofBanner';
 import type { City } from '../types';
 import { findCityBySlug } from '../constants/cities';
 
@@ -218,10 +219,8 @@ export function HomePage() {
               <p className="text-sm text-notion-textLight mt-1 hidden md:block">
                 {t('subtitle')}
               </p>
-              {/* Visitor Counter - MY-31 */}
-              <p className="text-sm text-gray-400 mt-1">
-                500+ people used this today
-              </p>
+              {/* Visitor Counter - MY-34 */}
+              <SocialProofBanner />
             </div>
             <div className="flex items-center gap-2">
               {/* Share Button - Ghost style */}
