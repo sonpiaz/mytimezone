@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import type { City } from '../types';
-import { getCitiesFromUrl, updateUrlParams } from '../utils/urlHelpers';
+import { getCitiesFromUrl, encodeCitiesToUrl } from '../utils/urlHelpers';
 import { getCitiesBySlugs } from '../constants/cities';
 import { getDefaultCities } from '../utils/timezoneDetect';
 import { saveCities, loadCities } from '../utils/storageHelpers';
@@ -17,13 +17,14 @@ const areCitiesEqual = (a: City[], b: City[]): boolean => {
 
 export const useUrlState = (): [City[], (cities: City[]) => void] => {
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isHomePage = location.pathname === '/';
   const isNavigatingRef = useRef(false);
   const citiesRef = useRef<City[]>([]);
 
   const [cities, setCities] = useState<City[]>(() => {
     // Only parse URL if on home page
-    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+    if (location.pathname !== '/') {
       // Not on home page, return defaults
       const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
       citiesRef.current = defaultCities;
@@ -111,7 +112,18 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     // Only update URL params when on home page and not navigating
     // Skip if navigating or not on home page to avoid conflicts with routing
     if (isHomePage && !isNavigatingRef.current) {
-      updateUrlParams(newCities);
+      const encoded = encodeCitiesToUrl(newCities);
+      const newSearchParams = new URLSearchParams(searchParams);
+      
+      if (encoded) {
+        newSearchParams.set('c', encoded);
+        newSearchParams.delete('cities'); // Remove old format
+      } else {
+        newSearchParams.delete('c');
+        newSearchParams.delete('cities');
+      }
+      
+      setSearchParams(newSearchParams, { replace: true });
     }
     
     // Also save to localStorage using helper function
@@ -137,49 +149,51 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
     
     // Only update URL when on home page
-    if (window.location.pathname !== '/') {
+    if (location.pathname !== '/') {
       return;
     }
     
-    // Update URL params
-    updateUrlParams(cities);
-  }, [cities]);
+    // Update URL params using React Router
+    const encoded = encodeCitiesToUrl(cities);
+    const newSearchParams = new URLSearchParams(searchParams);
+    
+    if (encoded) {
+      newSearchParams.set('c', encoded);
+      newSearchParams.delete('cities'); // Remove old format
+    } else {
+      newSearchParams.delete('c');
+      newSearchParams.delete('cities');
+    }
+    
+    setSearchParams(newSearchParams, { replace: true });
+  }, [cities, location.pathname, searchParams, setSearchParams]);
 
   // Listen for URL changes (back/forward button) - only on home page
+  // Use React Router's location change instead of popstate
   useEffect(() => {
-    // Only listen to popstate when on home page
-    if (typeof window === 'undefined' || window.location.pathname !== '/') {
-      return; // Don't listen on other pages
+    // Only handle if on home page
+    if (location.pathname !== '/') {
+      return;
     }
 
-    const handlePopState = () => {
-      // Only handle if still on home page
-      if (window.location.pathname !== '/') {
-        return;
-      }
+    // CRITICAL: Prevent infinite loop - skip if we're currently navigating
+    if (isNavigatingRef.current) {
+      return;
+    }
 
-      // CRITICAL: Prevent infinite loop - skip if we're currently navigating
-      if (isNavigatingRef.current) {
-        return;
-      }
-
-      const newCities = getCitiesFromUrl();
-      
-      // Use ref to compare, not state (to avoid dependency on cities)
-      // Only update if cities actually changed
-      if (!areCitiesEqual(citiesRef.current, newCities)) {
-        isNavigatingRef.current = true;
-        setCities(newCities);
-        // Reset flag after state update using requestAnimationFrame
-        requestAnimationFrame(() => {
-          isNavigatingRef.current = false;
-        });
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []); // Empty deps - only setup once
+    const newCities = getCitiesFromUrl();
+    
+    // Use ref to compare, not state (to avoid dependency on cities)
+    // Only update if cities actually changed
+    if (!areCitiesEqual(citiesRef.current, newCities)) {
+      isNavigatingRef.current = true;
+      setCities(newCities);
+      // Reset flag after state update using requestAnimationFrame
+      requestAnimationFrame(() => {
+        isNavigatingRef.current = false;
+      });
+    }
+  }, [location.search, location.pathname]); // React to URL changes via React Router
 
   return [cities, updateCities];
 };
