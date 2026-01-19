@@ -129,6 +129,22 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
   };
 
+  // Update URL when cities change - with guards to prevent infinite loop
+  useEffect(() => {
+    // CRITICAL: Skip if navigating to prevent infinite loop
+    if (isNavigatingRef.current) {
+      return;
+    }
+    
+    // Only update URL when on home page
+    if (window.location.pathname !== '/') {
+      return;
+    }
+    
+    // Update URL params
+    updateUrlParams(cities);
+  }, [cities]);
+
   // Listen for URL changes (back/forward button) - only on home page
   useEffect(() => {
     // Only listen to popstate when on home page
@@ -142,7 +158,7 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
         return;
       }
 
-      // Prevent infinite loop: skip if we're currently navigating
+      // CRITICAL: Prevent infinite loop - skip if we're currently navigating
       if (isNavigatingRef.current) {
         return;
       }
