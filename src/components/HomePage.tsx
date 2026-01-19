@@ -222,14 +222,23 @@ export function HomePage() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <Link
-                to="/"
+              <a
+                href="/"
                 className="cursor-pointer hover:opacity-80 transition-opacity inline-block"
+                onClick={(e) => {
+                  // Clear localStorage to ensure clean home
+                  try {
+                    localStorage.removeItem('my-timezone-cities');
+                    localStorage.removeItem('my-timezone-cities-order');
+                  } catch {
+                    // Ignore errors
+                  }
+                }}
               >
                 <h1 className="text-2xl font-semibold text-notion-text">
                   {t('title')}
                 </h1>
-              </Link>
+              </a>
               <p className="text-sm text-notion-textLight mt-1 hidden md:block">
                 {t('subtitle')}
               </p>

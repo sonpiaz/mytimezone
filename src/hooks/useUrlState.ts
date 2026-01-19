@@ -48,7 +48,17 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
       return urlCities;
     }
 
-    // 2. Check localStorage (second priority)
+    // If URL is "/" with no params, don't load from localStorage (clean home)
+    // Only load localStorage if URL has params (user navigated with cities in URL)
+    const hasUrlParams = window.location.search.length > 0;
+    if (!hasUrlParams) {
+      // Clean home - use default cities, don't load from localStorage
+      const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
+      citiesRef.current = defaultCities;
+      return defaultCities;
+    }
+
+    // 2. Check localStorage (second priority) - only if URL had params
     // Try new helper function first, then fallback to old key for backward compatibility
     try {
       let slugs: string[] | null = loadCities();
