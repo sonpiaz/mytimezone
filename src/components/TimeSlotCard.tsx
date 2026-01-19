@@ -141,17 +141,26 @@ export const TimeSlotCard = ({
             
             const startStr = startLocal.toFormat('h:mm a');
             const endStr = endLocal.toFormat('h:mm a');
-            const abbr = startLocal.toFormat('ZZZZ');
+            const abbr = startLocal.toFormat('ZZZZ'); // PST, GMT, etc.
+            const dateLabel = startLocal.toFormat('EEE, MMM d'); // Sun, Jan 18
             
             // Handle next day indicator
             const endDateStr = endLocal.toFormat('M/d');
             const startDateStr = startLocal.toFormat('M/d');
-            const nextDayIndicator = endDateStr !== startDateStr ? ' +1' : '';
+            const nextDayIndicator = endDateStr !== startDateStr;
+            const nextDayDate = nextDayIndicator ? endLocal.toFormat('EEE, MMM d') : '';
+            
+            // Format: "Start - End TZ (Date)"
+            // Example: "3:00 PM - 4:00 PM PST (Sun, Jan 18)"
+            // Or: "11:00 PM - 12:00 AM GMT (Sun, Jan 18 - Mon, Jan 19)"
+            const datePart = nextDayIndicator 
+              ? `(${dateLabel} - ${nextDayDate})`
+              : `(${dateLabel})`;
             
             return {
               cityName: p.city.name,
               timezone: p.city.timezone,
-              localTime: `${startStr} - ${endStr}${nextDayIndicator} (${abbr})`,
+              localTime: `${startStr} - ${endStr} ${abbr} ${datePart}`,
             };
           });
 
@@ -161,7 +170,6 @@ export const TimeSlotCard = ({
               startTime={startDateTime}
               duration={durationMinutes}
               timezones={timezones}
-              description={meetingData.description}
               onSuccess={() => {
                 onCopy?.();
               }}

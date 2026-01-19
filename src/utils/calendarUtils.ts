@@ -9,26 +9,30 @@ export interface CalendarEventParams {
     timezone: string;
     localTime: string;
   }>;
-  description?: string;
 }
 
 /**
  * Generate timezone reference text for calendar description
- * Includes time range for each timezone (no duplicates)
- * Note: localTime already includes time range from TimeSlotCard
+ * Format: City Name: Start - End TZ (Date)
+ * Example: San Francisco: 3:00 PM - 4:00 PM PST (Sun, Jan 18)
+ * Input format: "3:00 PM - 4:00 PM PST (Sun, Jan 18)"
  */
 export function generateTimezoneReference(
   timezones: Array<{ cityName: string; timezone: string; localTime: string }>
 ): string {
-  const lines = timezones.map(tz => `• ${tz.cityName}: ${tz.localTime}`);
+  // localTime format: "3:00 PM - 4:00 PM PST (Sun, Jan 18)" or "11:00 PM - 12:00 AM GMT (Sun, Jan 18 - Mon, Jan 19)"
+  const lines = timezones.map(tz => {
+    // Format is already correct: "Start - End TZ (Date)"
+    // Just prepend city name
+    return `${tz.cityName}: ${tz.localTime}`;
+  });
   
   return `🌍 Time Zone Reference:
 ${lines.join('\n')}
 
-━━━━━━━━━━━━━━━━━━━━
-Scheduled with mytimezone.online
-Compare time zones → https://mytimezone.online
-━━━━━━━━━━━━━━━━━━━━`;
+___________
+Scheduled with → https://mytimezone.online
+___________`;
 }
 
 /**
@@ -36,7 +40,7 @@ Compare time zones → https://mytimezone.online
  * Docs: https://github.com/nicholasnjps/add-to-calendar
  */
 export function generateGoogleCalendarUrl(params: CalendarEventParams): string {
-  const { title, startTime, duration, timezones, description } = params;
+  const { title, startTime, duration, timezones } = params;
   
   const endTime = startTime.plus({ minutes: duration });
   
@@ -44,16 +48,14 @@ export function generateGoogleCalendarUrl(params: CalendarEventParams): string {
   const startUtc = startTime.toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'");
   const endUtc = endTime.toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'");
   
+  // Only use timezone reference, no duplicate description
   const tzReference = generateTimezoneReference(timezones);
-  const fullDescription = description 
-    ? `${description}\n\n${tzReference}`
-    : tzReference;
   
   const urlParams = new URLSearchParams({
     action: 'TEMPLATE',
     text: title,
     dates: `${startUtc}/${endUtc}`,
-    details: fullDescription,
+    details: tzReference,
   });
   
   return `https://calendar.google.com/calendar/render?${urlParams.toString()}`;
@@ -63,7 +65,7 @@ export function generateGoogleCalendarUrl(params: CalendarEventParams): string {
  * Generate Outlook Calendar URL (Office 365)
  */
 export function generateOutlookUrl(params: CalendarEventParams): string {
-  const { title, startTime, duration, timezones, description } = params;
+  const { title, startTime, duration, timezones } = params;
   
   const endTime = startTime.plus({ minutes: duration });
   
@@ -71,16 +73,14 @@ export function generateOutlookUrl(params: CalendarEventParams): string {
   const startIso = startTime.toUTC().toISO();
   const endIso = endTime.toUTC().toISO();
   
+  // Only use timezone reference, no duplicate description
   const tzReference = generateTimezoneReference(timezones);
-  const fullDescription = description 
-    ? `${description}\n\n${tzReference}`
-    : tzReference;
   
   const urlParams = new URLSearchParams({
     subject: title,
     startdt: startIso || '',
     enddt: endIso || '',
-    body: fullDescription,
+    body: tzReference,
     path: '/calendar/action/compose',
     rru: 'addevent',
   });
@@ -92,7 +92,7 @@ export function generateOutlookUrl(params: CalendarEventParams): string {
  * Generate ICS file content for Apple Calendar / download
  */
 export function generateICSContent(params: CalendarEventParams): string {
-  const { title, startTime, duration, timezones, description } = params;
+  const { title, startTime, duration, timezones } = params;
   
   const endTime = startTime.plus({ minutes: duration });
   
@@ -101,13 +101,11 @@ export function generateICSContent(params: CalendarEventParams): string {
   const endUtc = endTime.toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'");
   const nowUtc = DateTime.now().toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'");
   
+  // Only use timezone reference, no duplicate description
   const tzReference = generateTimezoneReference(timezones);
-  const fullDescription = description 
-    ? `${description}\n\n${tzReference}`
-    : tzReference;
   
   // Escape special characters for ICS
-  const escapedDescription = fullDescription
+  const escapedDescription = tzReference
     .replace(/\n/g, '\\n')
     .replace(/,/g, '\\,')
     .replace(/;/g, '\\;');
@@ -165,24 +163,33 @@ export function generateShareText(params: CalendarEventParams): string {
     const startStr = startLocal.toFormat('h:mm a');
     const endStr = endLocal.toFormat('h:mm a');
     const abbr = startLocal.toFormat('ZZZZ'); // PST, GMT, etc.
+    const dateLabel = startLocal.toFormat('EEE, MMM d'); // Sun, Jan 18
     
     // Handle next day indicator
     const endDateStr = endLocal.toFormat('M/d');
     const startDateStr = startLocal.toFormat('M/d');
-    const nextDayIndicator = endDateStr !== startDateStr ? ' +1' : '';
+    const nextDayIndicator = endDateStr !== startDateStr;
+    const nextDayDate = nextDayIndicator ? endLocal.toFormat('EEE, MMM d') : '';
     
-    return `• ${tz.cityName}: ${startStr} - ${endStr}${nextDayIndicator} (${abbr})`;
+    // Format: "City: Start - End TZ (Date)"
+    // Example: "San Francisco: 3:00 PM - 4:00 PM PST (Sun, Jan 18)"
+    // Or: "Singapore: 11:00 PM - 12:00 AM SGT (Sun, Jan 18 - Mon, Jan 19)"
+    const datePart = nextDayIndicator 
+      ? `(${dateLabel} - ${nextDayDate})`
+      : `(${dateLabel})`;
+    
+    return `${tz.cityName}: ${startStr} - ${endStr} ${abbr} ${datePart}`;
   }).join('\n');
   
   return `📅 ${title}
 📆 ${dateStr}
 
-🌍 Time zones:
+🌍 Time Zone Reference:
 ${tzLines}
 
-━━━━━━━━━━━━━━━━━━━━
-Scheduled with mytimezone.online
-https://mytimezone.online`;
+___________
+Scheduled with → https://mytimezone.online
+___________`;
 }
 
 /**

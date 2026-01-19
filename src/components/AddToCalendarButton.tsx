@@ -18,7 +18,6 @@ interface AddToCalendarButtonProps {
   startTime: DateTime;
   duration: number;
   timezones: TimezoneInfo[];
-  description?: string;
   onSuccess?: () => void;
 }
 
@@ -27,7 +26,6 @@ export function AddToCalendarButton({
   startTime,
   duration,
   timezones,
-  description,
   onSuccess,
 }: AddToCalendarButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +42,7 @@ export function AddToCalendarButton({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const eventParams: CalendarEventParams = { title, startTime, duration, timezones, description };
+  const eventParams: CalendarEventParams = { title, startTime, duration, timezones };
 
   const handleGoogleCalendar = () => {
     const url = generateGoogleCalendarUrl(eventParams);
