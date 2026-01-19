@@ -423,7 +423,8 @@ export function HomePage() {
       {cities.length >= 2 && (
         <button
           onClick={() => setShowScheduler(true)}
-          className="lg:hidden fixed bottom-6 right-6 z-50 bg-[#191919] text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[#333333] transition-colors font-medium text-sm"
+          className="lg:hidden fixed bottom-6 right-6 z-50 bg-[#191919] text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-gray-800 transition-colors font-medium text-sm"
+          title="Find the best meeting time"
         >
           <span>✨</span>
           <span>{t('findBestTime')}</span>
