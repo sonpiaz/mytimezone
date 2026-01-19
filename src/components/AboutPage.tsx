@@ -10,44 +10,70 @@ export const AboutPage = () => {
   
   // Update document title and meta tags for SEO
   useEffect(() => {
-    document.title = 'About My Time Zone - Free Time Zone Converter & Meeting Scheduler';
+    document.title = 'About − MyTimezone';
     
     // Update meta description
+    const description = 'MyTimezone giúp bạn chia sẻ khung giờ làm việc của mình với người khác dễ dàng. Kết nối phối hợp quốc tế không còn rào cản.';
+    
     let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
     if (metaDescription) {
-      metaDescription.setAttribute('content', 'My Time Zone is a free, modern tool to view and compare time zones worldwide. Find the best meeting time for your global team. No ads, no limits, no signup required.');
+      metaDescription.setAttribute('content', description);
     } else {
       metaDescription = document.createElement('meta');
       metaDescription.name = 'description';
-      metaDescription.content = 'My Time Zone is a free, modern tool to view and compare time zones worldwide. Find the best meeting time for your global team. No ads, no limits, no signup required.';
+      metaDescription.content = description;
       document.head.appendChild(metaDescription);
     }
 
-    // Add Schema.org JSON-LD
-    let schemaScript = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement | null;
-    if (!schemaScript) {
-      schemaScript = document.createElement('script');
-      schemaScript.type = 'application/ld+json';
-      schemaScript.textContent = JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebApplication',
-        name: 'My Time Zone',
-        url: 'https://mytimezone.online',
-        description: 'Free time zone converter and meeting scheduler for global teams',
-        applicationCategory: 'Productivity',
-        operatingSystem: 'Web Browser',
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'USD',
-        },
-        author: {
-          '@type': 'Person',
-          name: 'Son Piaz',
-        },
-      });
-      document.head.appendChild(schemaScript);
+    // Update OG tags
+    const updateOrCreateMeta = (property: string, content: string, isProperty = false) => {
+      const selector = isProperty ? `meta[property="${property}"]` : `meta[name="${property}"]`;
+      let meta = document.querySelector(selector) as HTMLMetaElement | null;
+      if (meta) {
+        meta.setAttribute('content', content);
+      } else {
+        meta = document.createElement('meta');
+        if (isProperty) {
+          meta.setAttribute('property', property);
+        } else {
+          meta.setAttribute('name', property);
+        }
+        meta.content = content;
+        document.head.appendChild(meta);
+      }
+    };
+
+    updateOrCreateMeta('og:title', 'About − MyTimezone', true);
+    updateOrCreateMeta('og:description', description, true);
+    updateOrCreateMeta('og:type', 'website', true);
+    updateOrCreateMeta('og:url', 'https://mytimezone.online/about', true);
+    updateOrCreateMeta('og:image', 'https://mytimezone.online/og-image.svg', true);
+    updateOrCreateMeta('twitter:card', 'summary_large_image');
+    updateOrCreateMeta('twitter:title', 'About − MyTimezone');
+    updateOrCreateMeta('twitter:description', description);
+    updateOrCreateMeta('twitter:image', 'https://mytimezone.online/og-image.svg');
+
+    // Remove existing About page schema if exists
+    const existingAboutSchema = document.querySelector('script[data-about-schema]');
+    if (existingAboutSchema) {
+      existingAboutSchema.remove();
     }
+
+    // Add Schema.org JSON-LD for About page
+    const schemaScript = document.createElement('script');
+    schemaScript.type = 'application/ld+json';
+    schemaScript.setAttribute('data-about-schema', 'true');
+    schemaScript.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      mainEntity: {
+        '@type': 'WebPage',
+        name: 'About − MyTimezone',
+        url: 'https://mytimezone.online/about',
+        description: description,
+      },
+    });
+    document.head.appendChild(schemaScript);
   }, []);
 
   return (
@@ -79,119 +105,39 @@ export const AboutPage = () => {
         <article className="prose prose-lg max-w-none">
           {/* Title */}
           <h1 className="text-[32px] font-semibold text-[#191919] mb-6">
-            About
+            Về MyTimezone
           </h1>
 
           {/* Intro */}
           <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
-            My Time Zone is a simple tool for comparing time zones across cities.
-          </p>
-
-          <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
-            I built this because I work with people in different countries and got tired of doing timezone math in my head. Most tools I found were either full of ads or too complicated for what I needed.
+            MyTimezone là công cụ đơn giản giúp bạn hiển thị khung giờ làm việc quốc tế, dễ dàng chia sẻ ‒ cho cá nhân, nhóm hay tổ chức.
           </p>
 
           <p className="text-base font-normal text-[#37352F] leading-relaxed mb-12">
-            So I made something simple.
-          </p>
-
-          {/* What it does */}
-          <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
-            What it does
-          </h2>
-
-          <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
-            You add cities, and it shows you their local times on one timeline. When it's 9am in San Francisco, you can see it's 5pm in London and 1am tomorrow in Singapore.
+            Được thiết kế với giao diện rõ ràng, linh hoạt trong tùy chỉnh và dễ dàng nhúng, MyTimezone hỗ trợ bạn làm việc toàn cầu mà không gặp rào cản về múi giờ.
           </p>
 
           <p className="text-base font-normal text-[#37352F] leading-relaxed mb-12">
-            There's also a meeting scheduler that finds times when everyone is awake during reasonable hours.
+            Sản phẩm này được phát triển bởi{' '}
+            <a 
+              href="https://x.com/sonxpiaz" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#2F81F7] hover:underline"
+            >
+              Son Piaz
+            </a>
+            .
           </p>
 
-          {/* Features */}
-          <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
-            Features
-          </h2>
-
-          <div className="text-base font-normal text-[#37352F] leading-[2] mb-12">
-            <div>Unified timeline view for multiple cities</div>
-            <div>Smart search with abbreviations (SF, NYC, HCM)</div>
-            <div>Meeting scheduler to find the best time for everyone</div>
-            <div>Works on phone and desktop</div>
-            <div>Shareable links</div>
-            <div>No account needed</div>
-          </div>
-
-          {/* How to use */}
-          <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
-            How to use
-          </h2>
-
-          <ol className="list-decimal pl-6 text-base font-normal text-[#37352F] leading-relaxed space-y-2 mb-12">
-            <li>Go to <a href="https://mytimezone.online" className="text-[#2F81F7] hover:underline">mytimezone.online</a></li>
-            <li>Search and add cities</li>
-            <li>See all times at a glance</li>
-            <li>Use "Find Best Time" to schedule meetings</li>
-            <li>Share the link with your team</li>
-          </ol>
-
-          {/* Embed on your website */}
-          <section className="mb-12">
-            <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
-              Embed on your website
-            </h2>
-            <p className="text-base font-normal text-[#37352F] leading-relaxed mb-4">
-              Add a live timezone widget to your website, Notion page, or blog.
-            </p>
+          {/* Get Embed Code Button */}
+          <div className="mb-12">
             <a
               href="/?openEmbed=true"
-              className="inline-block mt-4 px-4 py-2 bg-[#191919] text-white rounded-lg hover:bg-gray-800 transition-colors"
+              className="inline-block px-4 py-2 bg-[#191919] text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               Get Embed Code
             </a>
-          </section>
-
-          {/* About me */}
-          <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
-            About me
-          </h2>
-
-          <p className="text-base font-normal text-[#37352F] leading-relaxed mb-12">
-            I'm Son Piaz. I make tools that solve problems I have. If you have feedback, use the button on the site.
-          </p>
-
-          {/* Questions */}
-          <h2 className="text-xl font-semibold text-[#191919] mt-12 mb-4">
-            Questions
-          </h2>
-
-          <div className="space-y-6 mb-12">
-            <div>
-              <div className="text-base font-medium text-[#191919] mt-4">
-                Is it free?
-              </div>
-              <div className="text-base font-normal text-[#6B7280] mt-1">
-                Yes, completely free. No premium tier, no ads.
-              </div>
-            </div>
-
-            <div>
-              <div className="text-base font-medium text-[#191919] mt-4">
-                How accurate is it?
-              </div>
-              <div className="text-base font-normal text-[#6B7280] mt-1">
-                We use standard timezone data (IANA) and handle daylight saving automatically.
-              </div>
-            </div>
-
-            <div>
-              <div className="text-base font-medium text-[#191919] mt-4">
-                Can I save my cities?
-              </div>
-              <div className="text-base font-normal text-[#6B7280] mt-1">
-                Yes. Your selection saves automatically in your browser.
-              </div>
-            </div>
           </div>
         </article>
       </main>

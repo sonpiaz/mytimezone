@@ -1,0 +1,45 @@
+# MyTimezone - Time Zone Converter & Meeting Scheduler
+
+## About
+
+MyTimezone is a simple tool for displaying international working hours, easy to share — for individuals, teams, or organizations.
+
+Designed with a clear interface, flexible customization, and easy embedding, MyTimezone helps you work globally without timezone barriers.
+
+**URL:** https://mytimezone.online
+
+**Author:** Son Piaz (https://x.com/sonxpiaz)
+
+## Main Features
+
+- Unified timeline view for multiple cities
+- Smart search with abbreviations (SF, NYC, HCM)
+- Meeting scheduler to find the best time for everyone
+- Works on phone and desktop
+- Shareable links
+- No account needed
+- Completely free, no ads
+
+## Key Pages
+
+- Home: https://mytimezone.online/
+- About: https://mytimezone.online/about
+- Embed Widget: https://mytimezone.online/embed
+
+## How It Works
+
+Add cities, and it shows you their local times on one timeline. When it's 9am in San Francisco, you can see it's 5pm in London and 1am tomorrow in Singapore.
+
+There's also a meeting scheduler that finds times when everyone is awake during reasonable hours.
+
+## Embedding
+
+You can embed a live timezone widget on your website, Notion page, or blog. Use the "Get Embed Code" button on the About page or visit https://mytimezone.online/?openEmbed=true
+
+## Technical Details
+
+- Built with React 19 + TypeScript
+- Uses Luxon for timezone handling
+- PWA support (works offline)
+- Responsive design (mobile-first)
+- No tracking, no ads, completely free
