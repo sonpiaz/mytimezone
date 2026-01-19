@@ -1,6 +1,6 @@
 # 📚 TÀI LIỆU DỰ ÁN: MY TIME ZONE
 **Last Updated:** 2025-01-19  
-**Version:** 1.3.1  
+**Version:** 1.3.2  
 **Status:** ✅ Production Ready
 
 ---
@@ -11,10 +11,12 @@
 
 - ✅ Xem nhiều timezone cùng lúc trên một timeline thống nhất
 - ✅ Thêm/xóa thành phố với fuzzy search thông minh
+- ✅ **Quick Add Chips** - Popular cities (Tokyo, London, New York, Singapore, Sydney) để tăng conversion
 - ✅ Drag & drop để sắp xếp lại thứ tự
 - ✅ **Short URL Codes** - Share link với URL ngắn gọn (56% shorter)
 - ✅ **Calendar Integration** - Add to Calendar với viral branding
 - ✅ Meeting Scheduler - Tìm "Giờ Vàng" họp cho nhiều timezone
+- ✅ **Visitor Counter** - Social proof "500+ people used this today"
 - ✅ Responsive design (mobile-first)
 - ✅ PWA support với install prompt
 - ✅ Multi-language (Tiếng Việt / English)
@@ -169,6 +171,7 @@ src/
   - Partial matches
   - Common abbreviations (sf, nyc, hcm)
   - Search across: name, country, state, timezone abbreviation, GMT offset
+- **Quick Add Chips (NEW - v1.3.2):** Popular cities (Tokyo, London, New York, Singapore, Sydney) hiển thị dưới search box để tăng conversion
 
 ### 4. Drag & Drop
 - Sử dụng `@dnd-kit`
@@ -304,6 +307,41 @@ https://mytimezone.online/embed?cities=sf,london,tokyo&theme=light&compact=true
 ## 📅 DAILY LOG - CẬP NHẬT THEO NGÀY
 
 ### 2025-01-19 (Hôm nay)
+- ✅ **Quick Add Chips for Popular Cities (MY-30)** - Thêm chips "Popular: [Tokyo] [London] [New York] [Singapore] [Sydney]" bên dưới search box
+  - Click chip → add city vào timeline
+  - Ẩn chip nếu city đã được add
+  - Style: rounded-full, bg-gray-100, text-xs
+  - Mục đích: Tăng conversion rate
+  - Files: `HomePage.tsx`
+  - Commit: `80c1a09`
+
+- ✅ **Visitor Counter for Social Proof (MY-31)** - Thêm "500+ people used this today" bên dưới tagline
+  - Style: text-sm, text-gray-400, subtle
+  - Hardcode số 500+ (phase 1)
+  - Mục đích: Tăng trust và social proof
+  - Files: `HomePage.tsx`
+  - Commit: `f3f1c17`
+
+- ✅ **Fix Emoji Rendering (MY-32)** - Replace tất cả emoji bằng text để tránh hiển thị "?" trên production
+  - Xóa/replace: 📊 ✨ 🔗 🌍 📅 📆
+  - Files: `HomePage.tsx`, `EmbedModal.tsx`, `EmbedGeneratorPage.tsx`, `TimeSlotCard.tsx`, `InstallPrompt.tsx`, `calendarUtils.ts`
+  - Commit: `1694993`
+
+- ✅ **Fix Logo and Footer Navigation (MY-33)** - Fix navigation links
+  - Logo ở `/embed-generator` đã có `<Link to="/">` (OK từ trước)
+  - Footer "Embed" đổi từ `onClick` → `<Link to="/embed-generator">`
+  - Removed unused `onEmbedClick` prop
+  - Files: `EmbedGeneratorPage.tsx`, `Footer.tsx`, `HomePage.tsx`
+  - Commit: `c2418ec`
+
+- ✅ **Fix Infinite Loop on Back Button (MY-6)** - Fix crash khi click Back button
+  - Thêm useEffect với guards để update URL khi cities thay đổi
+  - Guard: `if (isNavigatingRef.current) return;` - skip khi đang navigate
+  - Guard: `if (window.location.pathname !== '/') return;` - chỉ update URL trên home page
+  - Prevent infinite loop khi click Back button
+  - Files: `useUrlState.ts`
+  - Commit: `6622289`
+
 - ✅ **Add Preview Link to Embed Modal (MY-28)** - Thêm link "Open preview in new tab" trong EmbedModal
   - Link hiển thị bên dưới preview iframe
   - Link tự động update khi user thay đổi theme hoặc compact option
@@ -784,6 +822,13 @@ MAIN_CONTENT_MAX_WIDTH = 1152 (max-w-6xl)
 ---
 
 ## 📝 CHANGELOG
+
+### Version 1.3.2 (2025-01-19)
+- ✅ **Quick Add Chips for Popular Cities (MY-30)** - Thêm chips "Popular: [Tokyo] [London] [New York] [Singapore] [Sydney]" bên dưới search box để tăng conversion (2025-01-19)
+- ✅ **Visitor Counter for Social Proof (MY-31)** - Thêm "500+ people used this today" bên dưới tagline để tăng trust (2025-01-19)
+- ✅ **Fix Emoji Rendering (MY-32)** - Replace tất cả emoji (📊 ✨ 🔗 🌍) bằng text để tránh hiển thị "?" trên production (2025-01-19)
+- ✅ **Fix Logo and Footer Navigation (MY-33)** - Logo ở `/embed-generator` link về Home, Footer "Embed" link đến `/embed-generator` (2025-01-19)
+- ✅ **Fix Infinite Loop on Back Button (MY-6)** - Thêm guards trong `useUrlState.ts` để prevent infinite loop khi click Back button (2025-01-19)
 
 ### Version 1.3.1 (2025-01-19)
 - ✅ **Add Preview Link to Embed Modal (MY-28)** - Thêm link "Open preview in new tab" (2025-01-19)
