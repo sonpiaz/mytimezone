@@ -56,7 +56,7 @@ export function HomePage() {
   // Always show current time indicator (always viewing today)
   const isSelectedDateToday = true;
   
-  const { language, t, toggleLanguage } = useTranslation();
+  const { t } = useTranslation();
   const { hoveredColumnIndex, hoveredCellPosition, handleMouseMove, handleCellHover, handleColumnLeave } = useHoveredHour();
   const [currentHourCellPosition, setCurrentHourCellPosition] = useState<{ left: number; width: number } | null>(null);
   const timelineLayout = useTimelineLayout();
@@ -201,16 +201,6 @@ export function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* Language Switcher - với icon */}
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-1 px-2 py-1.5 text-sm text-[#6B7280] hover:text-[#374151] hover:bg-[#F3F4F6] rounded transition-colors font-normal"
-                aria-label={t('language')}
-              >
-                <span className="text-base">🌐</span>
-                <span>{language === 'vi' ? 'VI' : 'EN'}</span>
-              </button>
-              
               {/* Share Button - Ghost style */}
               <ShareButton t={t} cities={cities} />
               
@@ -236,14 +226,14 @@ export function HomePage() {
                 <span className="hidden sm:inline">&lt;/&gt;</span>
               </button>
               
-              {/* Find Best Time - Primary CTA */}
+              {/* Find Best Time - Desktop only (mobile uses FAB) */}
               {cities.length >= 2 && (
                 <button
                   onClick={() => setShowScheduler(true)}
-                  className="px-3 py-1.5 text-sm bg-[#191919] text-white rounded-md hover:bg-[#333333] flex items-center gap-1.5 transition-colors font-medium"
+                  className="hidden lg:flex px-3 py-1.5 text-sm bg-[#191919] text-white rounded-md hover:bg-[#333333] items-center gap-1.5 transition-colors font-medium"
                 >
                   <span className="text-xs">✨</span>
-                  <span className="hidden sm:inline">{t('findBestTime')}</span>
+                  <span>{t('findBestTime')}</span>
                 </button>
               )}
             </div>
@@ -431,8 +421,34 @@ export function HomePage() {
             </div>
           </DndContext>
         )}
+
+        {/* Inline CTA - After timeline */}
+        {cities.length >= 2 && (
+          <div className="mt-6 p-4 bg-[#F7F7F5] rounded-lg border border-[#E9E9E7] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-[#6B7280] text-sm">
+              ✨ {t('findBestTime')} for {cities.length} cities
+            </span>
+            <button
+              onClick={() => setShowScheduler(true)}
+              className="bg-[#191919] text-white px-4 py-2 rounded-lg hover:bg-[#333333] transition-colors font-medium text-sm flex items-center gap-2 whitespace-nowrap"
+            >
+              {t('findBestTime')} →
+            </button>
+          </div>
+        )}
         </div>
       </main>
+
+      {/* FAB - Mobile only */}
+      {cities.length >= 2 && (
+        <button
+          onClick={() => setShowScheduler(true)}
+          className="lg:hidden fixed bottom-6 right-6 z-50 bg-[#191919] text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[#333333] transition-colors font-medium text-sm"
+        >
+          <span>✨</span>
+          <span>{t('findBestTime')}</span>
+        </button>
+      )}
 
       {/* Footer - OUTSIDE DndContext */}
       <Footer />
