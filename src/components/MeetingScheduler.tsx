@@ -6,6 +6,7 @@ import { ResultSection } from './ResultSection';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useTranslation } from '../hooks/useTranslation';
 import { loadMeetingSettings, saveMeetingSettings } from '../utils/storageHelpers';
+import { findCityByCodeOrSlug } from '../utils/urlHelpers';
 
 interface MeetingSchedulerProps {
   isOpen: boolean;
