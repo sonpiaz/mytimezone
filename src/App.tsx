@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   DndContext,
   closestCenter,
@@ -432,6 +432,15 @@ function HomePageComponent() {
 
 // Main App component with routing
 function App() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    console.log('=== APP RENDER ===');
+    console.log('Current location pathname:', location.pathname);
+    console.log('Current location pathname (window):', window.location.pathname);
+    console.log('Current location href:', window.location.href);
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/" element={<HomePageComponent />} />

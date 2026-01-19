@@ -26,9 +26,41 @@ export const Footer = () => {
   };
 
   const handleAboutClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log('=== ABOUT CLICK DEBUG ===');
+    console.log('1. Event target:', e.target);
+    console.log('2. Event currentTarget:', e.currentTarget);
+    console.log('3. Event type:', e.type);
+    console.log('4. Default prevented before:', e.defaultPrevented);
+    console.log('5. Event bubbles:', e.bubbles);
+    console.log('6. Event cancelable:', e.cancelable);
+    
     e.preventDefault();
     e.stopPropagation();
-    navigate('/about');
+    
+    console.log('7. Default prevented after:', e.defaultPrevented);
+    console.log('8. Current pathname:', window.location.pathname);
+    console.log('9. Calling navigate("/about")...');
+    
+    try {
+      navigate('/about');
+      console.log('10. navigate() called successfully');
+    } catch (error) {
+      console.error('11. Error calling navigate:', error);
+    }
+    
+    // Check pathname after a short delay to see if navigation happened
+    setTimeout(() => {
+      console.log('12. After navigate - pathname:', window.location.pathname);
+      console.log('13. After navigate - href:', window.location.href);
+      console.log('=== END DEBUG ===');
+    }, 100);
+  };
+  
+  // Also add onMouseDown handler to catch events before DndContext
+  const handleAboutMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log('=== ABOUT MOUSEDOWN DEBUG ===');
+    console.log('MouseDown event fired on About button');
+    e.stopPropagation(); // Stop propagation before DndContext can catch it
   };
 
   return (
@@ -38,6 +70,7 @@ export const Footer = () => {
           {/* Left: Links */}
           <div className="flex items-center gap-4 text-sm">
             <button
+              onMouseDown={handleAboutMouseDown}
               onClick={handleAboutClick}
               className="text-[#6B7280] hover:text-[#374151] transition-colors cursor-pointer"
             >

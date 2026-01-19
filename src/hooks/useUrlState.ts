@@ -18,7 +18,7 @@ const areCitiesEqual = (a: City[], b: City[]): boolean => {
 export const useUrlState = (): [City[], (cities: City[]) => void] => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
-  const isUpdatingRef = useRef(false);
+  const isNavigatingRef = useRef(false);
   const citiesRef = useRef<City[]>([]);
 
   const [cities, setCities] = useState<City[]>(() => {
@@ -90,16 +90,21 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   }, [cities]);
 
   const updateCities = (newCities: City[]) => {
+    // Prevent infinite loop: skip if currently navigating
+    if (isNavigatingRef.current) {
+      return;
+    }
+
     // Prevent infinite loop: only update if cities actually changed
     if (areCitiesEqual(cities, newCities)) {
       return;
     }
 
-    isUpdatingRef.current = true;
     setCities(newCities);
     
-    // Only update URL params when on home page to avoid conflicts with routing
-    if (isHomePage) {
+    // Only update URL params when on home page and not navigating
+    // Skip if navigating or not on home page to avoid conflicts with routing
+    if (isHomePage && !isNavigatingRef.current) {
       updateUrlParams(newCities);
     }
     
@@ -116,11 +121,6 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
       console.warn('Failed to save cities to localStorage:', e);
       // Silently fail - localStorage is not critical
     }
-    
-    // Reset flag after state update
-    setTimeout(() => {
-      isUpdatingRef.current = false;
-    }, 0);
   };
 
   // Listen for URL changes (back/forward button) - only on home page
@@ -131,8 +131,8 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
 
     const handlePopState = () => {
-      // Prevent infinite loop: skip if we're currently updating
-      if (isUpdatingRef.current) {
+      // Prevent infinite loop: skip if we're currently navigating
+      if (isNavigatingRef.current) {
         return;
       }
 
@@ -142,11 +142,12 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
       // Use ref to compare, not state (to avoid dependency on cities)
       // Only update if cities actually changed
       if (!areCitiesEqual(citiesRef.current, newCities)) {
-        isUpdatingRef.current = true;
+        isNavigatingRef.current = true;
         setCities(newCities);
-        setTimeout(() => {
-          isUpdatingRef.current = false;
-        }, 0);
+        // Reset flag after state update using requestAnimationFrame
+        requestAnimationFrame(() => {
+          isNavigatingRef.current = false;
+        });
       }
     };
 
