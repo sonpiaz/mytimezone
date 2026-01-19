@@ -64,14 +64,13 @@ export const EmbedGeneratorPage = () => {
       <header className="sticky top-0 bg-white border-b border-[#E9E9E7] z-40">
         <div className="max-w-2xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="hover:opacity-80 transition-opacity">
-              <h1 className="text-2xl font-semibold text-[#37352F]">
-                My Time Zone
-              </h1>
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <img src="/favicon.svg" alt="TZ" className="w-8 h-8" />
+              <span className="text-xl font-semibold text-[#37352F]">My Time Zone</span>
             </Link>
             <Link
               to="/"
-              className="text-sm text-[#6B7280] hover:text-[#374151] transition-colors"
+              className="text-sm text-[#6B7280] hover:text-[#374151] transition-colors flex items-center gap-1"
             >
               ← Back to Home
             </Link>
