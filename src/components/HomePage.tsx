@@ -204,33 +204,12 @@ export function HomePage() {
               {/* Share Button - Ghost style */}
               <ShareButton t={t} cities={cities} />
               
-              {/* Embed Button */}
-              <button
-                onClick={() => setShowEmbedModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#374151] hover:bg-[#F3F4F6] rounded-md transition-colors font-normal"
-                title="Embed Widget"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                  />
-                </svg>
-                <span className="hidden sm:inline">&lt;/&gt;</span>
-              </button>
-              
               {/* Find Best Time - Desktop only (mobile uses FAB) */}
               {cities.length >= 2 && (
                 <button
                   onClick={() => setShowScheduler(true)}
-                  className="hidden lg:flex px-3 py-1.5 text-sm bg-[#191919] text-white rounded-md hover:bg-[#333333] items-center gap-1.5 transition-colors font-medium"
+                  className="hidden lg:flex px-4 py-2 text-sm bg-[#191919] text-white rounded-lg hover:bg-gray-800 items-center gap-1.5 transition-colors font-medium"
+                  title="Find the best meeting time"
                 >
                   <span className="text-xs">✨</span>
                   <span>{t('findBestTime')}</span>
@@ -430,8 +409,9 @@ export function HomePage() {
             </span>
             <button
               onClick={() => setShowScheduler(true)}
-              className="bg-[#191919] text-white px-4 py-2 rounded-lg hover:bg-[#333333] transition-colors font-medium text-sm flex items-center gap-2 whitespace-nowrap"
+              className="bg-[#191919] text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors font-medium text-sm flex items-center gap-2 whitespace-nowrap"
             >
+              <span className="text-xs">✨</span>
               {t('findBestTime')} →
             </button>
           </div>
@@ -451,7 +431,7 @@ export function HomePage() {
       )}
 
       {/* Footer - OUTSIDE DndContext */}
-      <Footer />
+      <Footer onEmbedClick={() => setShowEmbedModal(true)} />
       
       {/* PWA Components */}
       <OfflineIndicator />

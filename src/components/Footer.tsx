@@ -9,7 +9,11 @@ declare global {
   }
 }
 
-export const Footer = () => {
+interface FooterProps {
+  onEmbedClick?: () => void;
+}
+
+export const Footer = ({ onEmbedClick }: FooterProps) => {
   const { language, toggleLanguage, t } = useTranslation();
   const TALLY_FORM_ID = '2EAzEp';
 
@@ -25,35 +29,41 @@ export const Footer = () => {
     }
   };
 
-  const goToAbout = () => {
-    // Use window.location.href for guaranteed navigation
-    window.location.href = '/about';
-  };
-
   return (
     <footer className="bg-[#FAFAFA] border-t border-[#F3F4F6] mt-auto">
       <div className="max-w-6xl mx-auto px-6 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Left: Links + Language */}
           <div className="flex items-center gap-4 text-sm">
-            <button
-              onClick={goToAbout}
-              className="text-[#6B7280] hover:text-[#374151] transition-colors cursor-pointer"
+            <a
+              href="/about"
+              className="text-[#6B7280] hover:text-[#374151] transition-colors"
+              title="About My Time Zone"
             >
               About
-            </button>
+            </a>
             <span className="text-[#D1D5DB]">·</span>
             <button
               onClick={openFeedback}
               className="text-[#6B7280] hover:text-[#374151] transition-colors"
+              title="Send feedback"
             >
               Feedback
+            </button>
+            <span className="text-[#D1D5DB]">·</span>
+            <button
+              onClick={onEmbedClick}
+              className="text-[#6B7280] hover:text-[#374151] transition-colors"
+              title="Get embed code for your website"
+            >
+              Embed
             </button>
             <span className="text-[#D1D5DB]">·</span>
             <button
               onClick={toggleLanguage}
               className="flex items-center gap-1 text-[#6B7280] hover:text-[#374151] transition-colors"
               aria-label={t('language')}
+              title="Switch language"
             >
               <span className="text-base">🌐</span>
               <span>{language === 'vi' ? 'VI' : 'EN'}</span>
