@@ -27,7 +27,7 @@ export function generateTimezoneReference(
     return `${tz.cityName}: ${tz.localTime}`;
   });
   
-  return `🌍 Time Zone Reference:
+  return `Time Zone Reference:
 ${lines.join('\n')}
 
 ___________
@@ -181,10 +181,10 @@ export function generateShareText(params: CalendarEventParams): string {
     return `${tz.cityName}: ${startStr} - ${endStr} ${abbr} ${datePart}`;
   }).join('\n');
   
-  return `📅 ${title}
-📆 ${dateStr}
+  return `${title}
+${dateStr}
 
-🌍 Time Zone Reference:
+Time Zone Reference:
 ${tzLines}
 
 ___________

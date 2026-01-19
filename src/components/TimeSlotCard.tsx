@@ -98,7 +98,6 @@ export const TimeSlotCard = ({
       {/* Best badge for first slot */}
       {isFirst && (
         <div className="mb-3 inline-flex items-center gap-1.5 px-2 py-1 bg-[#ECFDF5] text-[#059669] rounded-md text-xs font-medium">
-          <span>✨</span>
           <span>{t('best') || 'Best'}</span>
         </div>
       )}

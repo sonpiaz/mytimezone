@@ -118,7 +118,7 @@ export const InstallPrompt = () => {
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 bg-white border border-[#E9E9E7] rounded-lg shadow-lg p-4">
       <div className="flex items-start gap-3 mb-4">
         <div className="w-10 h-10 rounded-lg bg-[#F7F7F5] flex items-center justify-center flex-shrink-0">
-          <span className="text-xl">🌍</span>
+          <span className="text-xl">🌐</span>
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-[#191919] mb-1">Install My Time Zone</h3>
