@@ -22,6 +22,14 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   const citiesRef = useRef<City[]>([]);
 
   const [cities, setCities] = useState<City[]>(() => {
+    // Only parse URL if on home page
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      // Not on home page, return defaults
+      const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
+      citiesRef.current = defaultCities;
+      return defaultCities;
+    }
+
     // 1. Check URL params first (highest priority)
     const urlSlugs = getCitiesFromUrl();
     if (urlSlugs.length > 0) {
@@ -126,11 +134,16 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   // Listen for URL changes (back/forward button) - only on home page
   useEffect(() => {
     // Only listen to popstate when on home page
-    if (!isHomePage) {
-      return;
+    if (typeof window === 'undefined' || window.location.pathname !== '/') {
+      return; // Don't listen on other pages
     }
 
     const handlePopState = () => {
+      // Only handle if still on home page
+      if (window.location.pathname !== '/') {
+        return;
+      }
+
       // Prevent infinite loop: skip if we're currently navigating
       if (isNavigatingRef.current) {
         return;
@@ -153,7 +166,7 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [isHomePage]); // Only depend on isHomePage, not cities
+  }, []); // Empty deps - only setup once
 
   return [cities, updateCities];
 };

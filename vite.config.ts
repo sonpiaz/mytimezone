@@ -12,25 +12,29 @@ export default defineConfig({
       manifest: {
         name: 'My Time Zone',
         short_name: 'TimeZone',
-        description: 'View and compare time zones of cities around the world',
-        theme_color: '#191919',
-        background_color: '#ffffff',
+        description: 'Compare time zones worldwide',
+        theme_color: '#000000',
+        background_color: '#FAFAFA',
         display: 'standalone',
         scope: '/',
         start_url: '/',
         orientation: 'portrait-primary',
         icons: [
           {
-            src: '/icons/icon-192x192.png',
+            src: '/icons/icon-192.png',
             sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable'
+            type: 'image/png'
           },
           {
-            src: '/icons/icon-512x512.png',
+            src: '/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: '/icons/icon-maskable-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
       },

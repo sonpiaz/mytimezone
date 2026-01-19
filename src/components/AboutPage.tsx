@@ -1,9 +1,12 @@
 import { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { Footer } from './Footer';
 
 export const AboutPage = () => {
-  const location = useLocation();
+  // Debug: Log when AboutPage renders
+  useEffect(() => {
+    console.log('=== ABOUT PAGE RENDERED ===');
+    console.log('AboutPage pathname:', window.location.pathname);
+  }, []);
   
   // Update document title and meta tags for SEO
   useEffect(() => {
@@ -45,7 +48,7 @@ export const AboutPage = () => {
       });
       document.head.appendChild(schemaScript);
     }
-  }, [location]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-notion-bg flex flex-col">
@@ -53,17 +56,20 @@ export const AboutPage = () => {
       <header className="sticky top-0 bg-white border-b border-notion-border z-40">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="hover:opacity-80 transition-opacity">
+            <button
+              onClick={() => { window.location.href = '/'; }}
+              className="hover:opacity-80 transition-opacity"
+            >
               <h1 className="text-2xl font-semibold text-notion-text">
                 My Time Zone
               </h1>
-            </Link>
-            <Link
-              to="/"
+            </button>
+            <button
+              onClick={() => { window.location.href = '/'; }}
               className="text-sm text-notion-text hover:text-notion-accent transition-colors"
             >
               ← Back to Home
-            </Link>
+            </button>
           </div>
         </div>
       </header>

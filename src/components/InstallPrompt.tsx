@@ -5,44 +5,74 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+// LocalStorage keys
+const VISIT_COUNT_KEY = 'pwa_visit_count';
+const NEXT_PROMPT_VISIT_KEY = 'pwa_next_prompt_visit';
+const INSTALLED_KEY = 'pwa_installed';
+
+// Helper: Get next Fibonacci number after current
+const getNextFibonacci = (current: number): number => {
+  const fibs = [3, 5, 8, 13, 21, 34, 55, 89, 144, 233];
+  const next = fibs.find(f => f > current);
+  return next || fibs[fibs.length - 1] + current; // fallback for very high numbers
+};
+
 export const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    // Check nếu đã dismiss trước đó - không hiện nữa
-    const wasDismissed = localStorage.getItem('mytimezone_install_dismissed');
-    if (wasDismissed === 'true') {
-      return; // Không hiện nữa nếu đã dismiss
+    // Check if already installed
+    if (localStorage.getItem(INSTALLED_KEY) === 'true') {
+      return;
     }
 
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Chỉ hiện prompt nếu đã visit ít nhất 1 lần trước đó (lần 2 trở đi)
-      const visitCount = parseInt(localStorage.getItem('mytimezone_visit_count') || '0', 10);
-      
-      if (visitCount >= 1) {
+    // Increment visit count
+    const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10) + 1;
+    localStorage.setItem(VISIT_COUNT_KEY, visitCount.toString());
+
+    // Get next prompt visit (default to 3 - first Fibonacci number in sequence)
+    const nextPromptVisit = parseInt(localStorage.getItem(NEXT_PROMPT_VISIT_KEY) || '3', 10);
+
+    console.log('=== INSTALL PROMPT DEBUG ===');
+    console.log('Visit count:', visitCount);
+    console.log('Next prompt visit:', nextPromptVisit);
+
+    // Check if should show prompt
+    if (visitCount >= nextPromptVisit) {
+      const handler = (e: Event) => {
+        e.preventDefault();
+        setDeferredPrompt(e as BeforeInstallPromptEvent);
+        
         // Delay 3 giây trước khi hiện prompt để không làm phiền user ngay
         setTimeout(() => {
           setShowPrompt(true);
         }, 3000);
-      }
+      };
+
+      window.addEventListener('beforeinstallprompt', handler);
       
-      // Tăng visit count
-      localStorage.setItem('mytimezone_visit_count', String(visitCount + 1));
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    
-    // Nếu là lần đầu, chỉ ghi nhận visit (không hiện prompt)
-    const visitCount = parseInt(localStorage.getItem('mytimezone_visit_count') || '0', 10);
-    if (visitCount === 0) {
-      localStorage.setItem('mytimezone_visit_count', '1');
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+      };
     }
+  }, []);
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+  // Debug helpers (remove in production)
+  useEffect(() => {
+    // @ts-ignore
+    window.resetPWAPrompt = () => {
+      localStorage.removeItem(VISIT_COUNT_KEY);
+      localStorage.removeItem(NEXT_PROMPT_VISIT_KEY);
+      localStorage.removeItem(INSTALLED_KEY);
+      console.log('PWA prompt reset. Refresh the page.');
+    };
+    
+    // @ts-ignore
+    window.simulateVisits = (count: number) => {
+      localStorage.setItem(VISIT_COUNT_KEY, count.toString());
+      console.log('Visit count set to:', count, '. Refresh the page.');
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -51,7 +81,10 @@ export const InstallPrompt = () => {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     
+    console.log('Install outcome:', outcome);
+    
     if (outcome === 'accepted') {
+      localStorage.setItem(INSTALLED_KEY, 'true');
       if (import.meta.env.DEV) {
         console.log('User accepted install');
       }
@@ -61,9 +94,22 @@ export const InstallPrompt = () => {
     setDeferredPrompt(null);
   };
 
-  const handleDismiss = () => {
+  const handleNotNow = () => {
+    // Get current visit count
+    const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
+    
+    // Calculate next Fibonacci prompt visit
+    const nextPromptVisit = getNextFibonacci(visitCount);
+    localStorage.setItem(NEXT_PROMPT_VISIT_KEY, nextPromptVisit.toString());
+    
+    console.log('User clicked "Not now". Next prompt at visit:', nextPromptVisit);
+    
     setShowPrompt(false);
-    localStorage.setItem('mytimezone_install_dismissed', 'true');
+  };
+
+  const handleDismiss = () => {
+    // Same as "Not now" - dismiss with X button
+    handleNotNow();
   };
 
   if (!showPrompt) return null;
@@ -91,7 +137,7 @@ export const InstallPrompt = () => {
       
       <div className="flex gap-2">
         <button
-          onClick={handleDismiss}
+          onClick={handleNotNow}
           className="flex-1 py-2 text-xs font-medium text-[#6B7280] hover:bg-[#F7F7F5] rounded-md transition-colors"
         >
           Not now
