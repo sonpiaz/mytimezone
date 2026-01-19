@@ -22,14 +22,6 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   const isNavigatingRef = useRef(false);
   const citiesRef = useRef<City[]>([]);
 
-  // DEBUG: Log initialization
-  if (typeof window !== 'undefined') {
-    console.log('=== useUrlState INIT ===');
-    console.log('URL:', window.location.href);
-    console.log('Search params:', window.location.search);
-    console.log('Pathname:', location.pathname);
-    console.log('Is HomePage:', isHomePage);
-  }
 
   // CRITICAL: Only sync URL on homepage - return early on other pages
   // This prevents conflicts with React Router navigation
@@ -40,11 +32,8 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   }
 
   const [cities, setCities] = useState<City[]>(() => {
-    console.log('=== INITIAL STATE FUNCTION ===');
-    
     // Only parse URL if on home page
     if (location.pathname !== '/') {
-      console.log('Not on home page, using defaults');
       const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
       citiesRef.current = defaultCities;
       return defaultCities;
@@ -52,18 +41,12 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
 
     // 1. Check URL params first (highest priority)
     // getCitiesFromUrl now returns City[] directly (supports both old and new format)
-    console.log('Parsing cities from URL...');
     const urlCities = getCitiesFromUrl();
-    console.log('URL cities parsed:', urlCities);
-    console.log('URL cities length:', urlCities.length);
     
     if (urlCities.length > 0) {
-      console.log('Using URL cities');
       citiesRef.current = urlCities;
       return urlCities;
     }
-    
-    console.log('No URL cities, checking localStorage...');
 
     // 2. Check localStorage (second priority)
     // Try new helper function first, then fallback to old key for backward compatibility
@@ -138,11 +121,12 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     // Only update URL params when on home page and not navigating
     // Skip if navigating or not on home page to avoid conflicts with routing
     if (isHomePage && !isNavigatingRef.current) {
-      const encoded = encodeCitiesToUrl(newCities);
+      const cityParam = encodeCitiesToUrl(newCities); // Returns "sf,ldn,sgp" (not encoded)
       const newSearchParams = new URLSearchParams(searchParams);
       
-      if (encoded) {
-        newSearchParams.set('c', encoded);
+      if (cityParam) {
+        // URLSearchParams.set() will automatically encode, so don't encode before
+        newSearchParams.set('c', cityParam);
         newSearchParams.delete('cities'); // Remove old format
       } else {
         newSearchParams.delete('c');
@@ -180,11 +164,12 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
     
     // Update URL params using React Router
-    const encoded = encodeCitiesToUrl(cities);
+    const cityParam = encodeCitiesToUrl(cities); // Returns "sf,ldn,sgp" (not encoded)
     const newSearchParams = new URLSearchParams(searchParams);
     
-    if (encoded) {
-      newSearchParams.set('c', encoded);
+    if (cityParam) {
+      // URLSearchParams.set() will automatically encode, so don't encode before
+      newSearchParams.set('c', cityParam);
       newSearchParams.delete('cities'); // Remove old format
     } else {
       newSearchParams.delete('c');

@@ -100,12 +100,6 @@ export const AboutPage = () => {
   const { language } = useTranslation();
   const content = aboutContent[language];
 
-  // Debug: Log when AboutPage renders
-  useEffect(() => {
-    console.log('=== ABOUT PAGE RENDERED ===');
-    console.log('AboutPage pathname:', window.location.pathname);
-  }, []);
-  
   // Update document title and meta tags for SEO
   useEffect(() => {
     document.title = `About − MyTimezone`;
