@@ -10,22 +10,38 @@ export const InstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
+    // Check nếu đã dismiss trước đó - không hiện nữa
+    const wasDismissed = localStorage.getItem('mytimezone_install_dismissed');
+    if (wasDismissed === 'true') {
+      return; // Không hiện nữa nếu đã dismiss
+    }
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       
-      // Chỉ hiện prompt nếu user đã dùng app 1 lần và chưa dismiss
-      const hasVisited = localStorage.getItem('mytimezone_visited');
-      const hasDismissed = localStorage.getItem('mytimezone_install_dismissed');
+      // Chỉ hiện prompt nếu đã visit ít nhất 1 lần trước đó (lần 2 trở đi)
+      const visitCount = parseInt(localStorage.getItem('mytimezone_visit_count') || '0', 10);
       
-      if (hasVisited && !hasDismissed) {
-        setShowPrompt(true);
-      } else if (!hasVisited) {
-        localStorage.setItem('mytimezone_visited', 'true');
+      if (visitCount >= 1) {
+        // Delay 3 giây trước khi hiện prompt để không làm phiền user ngay
+        setTimeout(() => {
+          setShowPrompt(true);
+        }, 3000);
       }
+      
+      // Tăng visit count
+      localStorage.setItem('mytimezone_visit_count', String(visitCount + 1));
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+    
+    // Nếu là lần đầu, chỉ ghi nhận visit (không hiện prompt)
+    const visitCount = parseInt(localStorage.getItem('mytimezone_visit_count') || '0', 10);
+    if (visitCount === 0) {
+      localStorage.setItem('mytimezone_visit_count', '1');
+    }
+
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
@@ -36,8 +52,12 @@ export const InstallPrompt = () => {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      setShowPrompt(false);
+      if (import.meta.env.DEV) {
+        console.log('User accepted install');
+      }
     }
+    
+    setShowPrompt(false);
     setDeferredPrompt(null);
   };
 

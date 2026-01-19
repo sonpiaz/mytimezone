@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Footer } from './Footer';
 
 export const AboutPage = () => {
   const location = useLocation();
@@ -47,7 +48,7 @@ export const AboutPage = () => {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-notion-bg">
+    <div className="min-h-screen bg-notion-bg flex flex-col">
       {/* Header - Same as main page */}
       <header className="sticky top-0 bg-white border-b border-notion-border z-40">
         <div className="max-w-6xl mx-auto px-6 py-4">
@@ -172,6 +173,9 @@ export const AboutPage = () => {
           </div>
         </article>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
