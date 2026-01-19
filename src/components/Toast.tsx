@@ -7,7 +7,7 @@ interface ToastProps {
   onClose: () => void;
 }
 
-export const Toast = ({ message, type = 'info', duration = 3000, onClose }: ToastProps) => {
+export const Toast = ({ message, type = 'info', duration = 2500, onClose }: ToastProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const Toast = ({ message, type = 'info', duration = 3000, onClose }: Toas
   const bgColor = {
     success: 'bg-notion-accentGreen',
     error: 'bg-red-500',
-    info: 'bg-notion-accent',
+    info: 'bg-gray-900', // Dark gray instead of blue
   }[type];
 
   return (
