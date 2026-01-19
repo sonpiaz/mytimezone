@@ -3,7 +3,9 @@ import type { City } from '../types';
 import { getCitiesFromUrl, updateUrlParams } from '../utils/urlHelpers';
 import { getCitiesBySlugs } from '../constants/cities';
 import { getDefaultCities } from '../utils/timezoneDetect';
+import { saveCities, loadCities } from '../utils/storageHelpers';
 
+// Keep old key for backward compatibility, but also use new helper functions
 const STORAGE_KEY = 'my-timezone-cities-order';
 
 export const useUrlState = (): [City[], (cities: City[]) => void] => {
@@ -18,16 +20,27 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
 
     // 2. Check localStorage (second priority)
+    // Try new helper function first, then fallback to old key for backward compatibility
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const slugs = JSON.parse(stored);
-        // Validate: must be array and not empty
-        if (Array.isArray(slugs) && slugs.length > 0) {
-          const savedCities = getCitiesBySlugs(slugs);
-          if (savedCities.length > 0) {
-            return savedCities;
+      let slugs: string[] | null = loadCities();
+      
+      // If new helper returns null, try old key
+      if (!slugs) {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          slugs = JSON.parse(stored);
+        }
+      }
+      
+      // Validate: must be array and not empty
+      if (Array.isArray(slugs) && slugs.length > 0) {
+        const savedCities = getCitiesBySlugs(slugs);
+        if (savedCities.length > 0) {
+          // Migrate to new key if using old key
+          if (!loadCities()) {
+            saveCities(slugs);
           }
+          return savedCities;
         }
       }
     } catch (e) {
@@ -58,11 +71,13 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     setCities(newCities);
     updateUrlParams(newCities);
     
-    // Also save to localStorage
+    // Also save to localStorage using helper function
     try {
       const slugs = newCities.map(c => c.slug);
       // Validate before saving
       if (Array.isArray(slugs) && slugs.length > 0) {
+        saveCities(slugs);
+        // Also save to old key for backward compatibility
         localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
       }
     } catch (e) {

@@ -133,63 +133,89 @@ const evaluateTimeSlot = (
   };
 };
 
-// Generate Google Calendar URL
-export const generateGoogleCalendarUrl = (slot: TimeSlot): string => {
+// Helper function to get meeting date/time from TimeSlot
+export const getMeetingDateTime = (
+  slot: TimeSlot,
+  selectedDate?: Date
+): { startTime: Date; endTime: Date; title: string; description: string } => {
   const hostParticipant = slot.participants.find(p => p.isHost) || slot.participants[0];
   
-  const title = encodeURIComponent('Team Meeting');
-  const details = encodeURIComponent(
-    slot.participants
-      .map(p => `${p.city.name}: ${p.startTime} - ${p.endTime} (${p.date})`)
-      .join('\n')
-  );
-  
-  // Parse the date and time from host participant
-  const hostDateStr = hostParticipant.date; // "Sat, Jan 18"
-  const hostStartTime = hostParticipant.startTime; // "08:00"
-  const hostEndTime = hostParticipant.endTime; // "09:00"
+  const title = 'Team Meeting';
+  const description = slot.participants
+    .map(p => `${p.city.name}: ${p.startTime} - ${p.endTime} (${p.date})`)
+    .join('\n');
   
   // Find the city's timezone
   const hostCity = hostParticipant.city;
   
-  // Get current year (or try to parse from date string)
-  const now = DateTime.now();
-  const year = now.year;
+  // Use selectedDate if provided, otherwise use current date
+  const baseDate = selectedDate ? DateTime.fromJSDate(selectedDate) : DateTime.now();
   
-  // Try to parse date - format: "EEE, MMM d" (e.g., "Sat, Jan 18")
-  // We need to construct a full date string
-  let startDateTime: DateTime;
-  let endDateTime: DateTime;
+  // Parse start and end times from host participant
+  const hostStartTime = hostParticipant.startTime; // "08:00"
+  const hostEndTime = hostParticipant.endTime; // "09:00"
   
-  try {
-    // Try parsing with current year
-    const dateTimeStr = `${hostDateStr} ${year} ${hostStartTime}`;
-    startDateTime = DateTime.fromFormat(dateTimeStr, 'EEE, MMM d yyyy HH:mm', { zone: hostCity.timezone });
-    
-    // If parsing fails or date is in the past, try next year
-    if (!startDateTime.isValid || startDateTime < now) {
-      const dateTimeStrNext = `${hostDateStr} ${year + 1} ${hostStartTime}`;
-      startDateTime = DateTime.fromFormat(dateTimeStrNext, 'EEE, MMM d yyyy HH:mm', { zone: hostCity.timezone });
-    }
-    
-    const endTimeStr = `${hostDateStr} ${startDateTime.year} ${hostEndTime}`;
-    endDateTime = DateTime.fromFormat(endTimeStr, 'EEE, MMM d yyyy HH:mm', { zone: hostCity.timezone });
-    
-    // If end time is before start time, it's next day
-    if (endDateTime <= startDateTime) {
-      endDateTime = endDateTime.plus({ days: 1 });
-    }
-  } catch (error) {
-    // Fallback: use current date/time
-    startDateTime = DateTime.now().setZone(hostCity.timezone).set({ hour: parseInt(hostStartTime.split(':')[0]), minute: parseInt(hostStartTime.split(':')[1]) });
-    endDateTime = startDateTime.plus({ hours: slot.endHour - slot.startHour });
+  const [startHour, startMinute] = hostStartTime.split(':').map(Number);
+  const [endHour, endMinute] = hostEndTime.split(':').map(Number);
+  
+  // Create start DateTime in host timezone
+  let startDateTime = baseDate.setZone(hostCity.timezone).set({
+    hour: startHour,
+    minute: startMinute,
+    second: 0,
+    millisecond: 0,
+  });
+  
+  // Create end DateTime in host timezone
+  let endDateTime = baseDate.setZone(hostCity.timezone).set({
+    hour: endHour,
+    minute: endMinute,
+    second: 0,
+    millisecond: 0,
+  });
+  
+  // CRITICAL FIX: If endHour <= startHour, meeting spans to next day
+  // Example: 23:00 - 00:00 or 23:00 - 01:00
+  if (endHour < startHour || (endHour === startHour && endMinute <= startMinute)) {
+    endDateTime = endDateTime.plus({ days: 1 });
   }
   
-  // Convert to UTC for Google Calendar (format: YYYYMMDDTHHmmssZ)
-  const startUTC = startDateTime.toUTC().toFormat('yyyyMMdd\'T\'HHmmss\'Z\'');
-  const endUTC = endDateTime.toUTC().toFormat('yyyyMMdd\'T\'HHmmss\'Z\'');
+  // Additional safety check: if endDateTime is still <= startDateTime, add 1 day
+  if (endDateTime <= startDateTime) {
+    endDateTime = endDateTime.plus({ days: 1 });
+  }
   
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startUTC}/${endUTC}&details=${details}`;
+  // Validate dates before returning
+  if (!startDateTime.isValid || !endDateTime.isValid) {
+    console.error('Invalid date time:', { startDateTime, endDateTime, slot });
+    // Fallback to current time + duration
+    const now = DateTime.now().setZone(hostCity.timezone);
+    startDateTime = now.set({ hour: startHour, minute: startMinute, second: 0, millisecond: 0 });
+    endDateTime = startDateTime.plus({ hours: slot.endHour - slot.startHour });
+    
+    // If still invalid, use simple fallback
+    if (!endDateTime.isValid || endDateTime <= startDateTime) {
+      endDateTime = startDateTime.plus({ hours: 1 });
+    }
+  }
+  
+  return {
+    startTime: startDateTime.toJSDate(),
+    endTime: endDateTime.toJSDate(),
+    title,
+    description,
+  };
+};
+
+// Generate Google Calendar URL
+export const generateGoogleCalendarUrl = (slot: TimeSlot, selectedDate?: Date): string => {
+  const { startTime, endTime, title, description } = getMeetingDateTime(slot, selectedDate);
+  
+  // Convert to UTC for Google Calendar (format: YYYYMMDDTHHmmssZ)
+  const startUTC = DateTime.fromJSDate(startTime).toUTC().toFormat('yyyyMMdd\'T\'HHmmss\'Z\'');
+  const endUTC = DateTime.fromJSDate(endTime).toUTC().toFormat('yyyyMMdd\'T\'HHmmss\'Z\'');
+  
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startUTC}/${endUTC}&details=${encodeURIComponent(description)}`;
 };
 
 // Generate meeting link

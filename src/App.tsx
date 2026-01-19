@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import {
   DndContext,
   closestCenter,
@@ -25,9 +26,12 @@ import { TimeIndicator } from './components/CurrentTimeLine';
 import { MobileTimezoneView } from './components/MobileTimezoneView';
 import { CitySearch } from './components/CitySearch';
 import { ShareButton } from './components/ShareButton';
-import { FeedbackButton } from './components/FeedbackButton';
 import { ToastManager } from './components/Toast';
 import { MeetingScheduler } from './components/MeetingScheduler';
+import { AboutPage } from './components/AboutPage';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { InstallPrompt } from './components/InstallPrompt';
+import { Footer } from './components/Footer';
 import type { City } from './types';
 
 interface Toast {
@@ -36,7 +40,8 @@ interface Toast {
   type?: 'success' | 'error' | 'info';
 }
 
-function App() {
+// HomePage component - Main timezone view
+function HomePageComponent() {
   const [cities, setCities] = useUrlState();
   const [showScheduler, setShowScheduler] = useState(false);
   // Always use today's date (no date navigation needed)
@@ -81,7 +86,8 @@ function App() {
           
           setCurrentHourCellPosition({ left, width });
           
-          if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          // Debug logging (dev only)
+          if (import.meta.env.DEV && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
             console.log('=== CURRENT HOUR POSITION ===');
             console.log('Current hour column:', currentHourColumn);
             console.log('Cell left (relative):', left);
@@ -170,37 +176,33 @@ function App() {
   }, [isDesktop, currentHourColumn, columnWidth, sidebarWidth, timezoneData.length]);
 
   return (
-    <div className="min-h-screen bg-notion-bg">
+    <div className="min-h-screen bg-notion-bg flex flex-col">
       {/* Header - Notion style */}
       <header className="sticky top-0 bg-white border-b border-notion-border z-40">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <a
-                href="/"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Reset về trang chủ - reload page
-                  window.location.href = '/';
-                }}
+              <Link
+                to="/"
                 className="cursor-pointer hover:opacity-80 transition-opacity inline-block"
               >
                 <h1 className="text-2xl font-semibold text-notion-text">
                   {t('title')}
                 </h1>
-              </a>
+              </Link>
               <p className="text-sm text-notion-textLight mt-1 hidden md:block">
                 {t('subtitle')}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* Language Switcher - Minimal */}
+              {/* Language Switcher - với icon */}
               <button
                 onClick={toggleLanguage}
-                className="px-2 py-1.5 text-xs text-[#6B6B6B] hover:bg-[rgba(55,53,47,0.08)] rounded transition-colors font-normal"
+                className="flex items-center gap-1 px-2 py-1.5 text-sm text-[#6B7280] hover:text-[#374151] hover:bg-[#F3F4F6] rounded transition-colors font-normal"
                 aria-label={t('language')}
               >
-                {language === 'vi' ? 'VI' : 'EN'}
+                <span className="text-base">🌐</span>
+                <span>{language === 'vi' ? 'VI' : 'EN'}</span>
               </button>
               
               {/* Share Button - Ghost style */}
@@ -310,8 +312,8 @@ function App() {
                     // Emit cell position
                     handleCellHover({ left, width, columnIndex });
                     
-                    // DEBUG
-                    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+                    // Debug logging (dev only)
+                    if (import.meta.env.DEV && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                       console.log('=== CELL HOVER ===');
                       console.log('Cell left (absolute):', cellRect.left);
                       console.log('Container left:', containerRect.left);
@@ -404,8 +406,12 @@ function App() {
         </div>
       </main>
 
-      {/* Feedback Button */}
-      <FeedbackButton t={t} />
+      {/* Footer */}
+      <Footer />
+      
+      {/* PWA Components */}
+      <OfflineIndicator />
+      <InstallPrompt />
       
       {/* Toast Notifications */}
       <ToastManager toasts={toasts} onRemove={removeToast} />
@@ -420,6 +426,16 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+// Main App component with routing
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePageComponent />} />
+      <Route path="/about" element={<AboutPage />} />
+    </Routes>
   );
 }
 

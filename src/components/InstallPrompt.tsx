@@ -1,0 +1,88 @@
+import { useState, useEffect } from 'react';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+export const InstallPrompt = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      
+      // Chỉ hiện prompt nếu user đã dùng app 1 lần và chưa dismiss
+      const hasVisited = localStorage.getItem('mytimezone_visited');
+      const hasDismissed = localStorage.getItem('mytimezone_install_dismissed');
+      
+      if (hasVisited && !hasDismissed) {
+        setShowPrompt(true);
+      } else if (!hasVisited) {
+        localStorage.setItem('mytimezone_visited', 'true');
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
+
+  const handleDismiss = () => {
+    setShowPrompt(false);
+    localStorage.setItem('mytimezone_install_dismissed', 'true');
+  };
+
+  if (!showPrompt) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 bg-white border border-[#E9E9E7] rounded-lg shadow-lg p-4">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-10 h-10 rounded-lg bg-[#F7F7F5] flex items-center justify-center flex-shrink-0">
+          <span className="text-xl">🌍</span>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-[#191919] mb-1">Install My Time Zone</h3>
+          <p className="text-xs text-[#6B7280]">Add to home screen for quick access</p>
+        </div>
+        <button
+          onClick={handleDismiss}
+          className="text-[#9B9A97] hover:text-[#37352F] transition-colors"
+          aria-label="Close"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div className="flex gap-2">
+        <button
+          onClick={handleDismiss}
+          className="flex-1 py-2 text-xs font-medium text-[#6B7280] hover:bg-[#F7F7F5] rounded-md transition-colors"
+        >
+          Not now
+        </button>
+        <button
+          onClick={handleInstall}
+          className="flex-1 py-2 text-xs font-medium bg-[#191919] text-white hover:bg-[#333333] rounded-md transition-colors"
+        >
+          Install
+        </button>
+      </div>
+    </div>
+  );
+};

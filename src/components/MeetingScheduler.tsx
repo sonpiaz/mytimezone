@@ -5,6 +5,7 @@ import { findBestMeetingTimes } from '../utils/meetingScheduler';
 import { ResultSection } from './ResultSection';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useTranslation } from '../hooks/useTranslation';
+import { loadMeetingSettings, saveMeetingSettings } from '../utils/storageHelpers';
 
 interface MeetingSchedulerProps {
   isOpen: boolean;
@@ -16,10 +17,14 @@ interface MeetingSchedulerProps {
 export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSchedulerProps) => {
   const { t } = useTranslation();
   
-  // State
+  // State - Initialize from localStorage
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [workingHours, setWorkingHours] = useState<WorkingHours>({ start: 9, end: 18 });
-  const [duration, setDuration] = useState(1); // 1 hour
+  const savedSettings = loadMeetingSettings();
+  const [workingHours, setWorkingHours] = useState<WorkingHours>({ 
+    start: savedSettings.workingHoursStart, 
+    end: savedSettings.workingHoursEnd 
+  });
+  const [duration, setDuration] = useState(savedSettings.meetingDuration / 60); // Convert minutes to hours
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [results, setResults] = useState<SchedulerResult | null>(null);
   
@@ -146,7 +151,11 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
             <div className="flex items-center gap-2">
               <select
                 value={workingHours.start}
-                onChange={(e) => setWorkingHours(prev => ({ ...prev, start: Number(e.target.value) }))}
+                onChange={(e) => {
+                  const newStart = Number(e.target.value);
+                  setWorkingHours(prev => ({ ...prev, start: newStart }));
+                  saveMeetingSettings({ workingHoursStart: newStart });
+                }}
                 className="px-3 py-2 border border-notion-border rounded-lg text-sm text-notion-text bg-white hover:bg-notion-hover transition-notion"
               >
                 {Array.from({ length: 24 }, (_, i) => (
@@ -156,7 +165,11 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
               <span className="text-notion-textLight">to</span>
               <select
                 value={workingHours.end}
-                onChange={(e) => setWorkingHours(prev => ({ ...prev, end: Number(e.target.value) }))}
+                onChange={(e) => {
+                  const newEnd = Number(e.target.value);
+                  setWorkingHours(prev => ({ ...prev, end: newEnd }));
+                  saveMeetingSettings({ workingHoursEnd: newEnd });
+                }}
                 className="px-3 py-2 border border-notion-border rounded-lg text-sm text-notion-text bg-white hover:bg-notion-hover transition-notion"
               >
                 {Array.from({ length: 24 }, (_, i) => (
@@ -175,7 +188,10 @@ export const MeetingScheduler = ({ isOpen, onClose, cities, onCopy }: MeetingSch
               {[0.5, 1, 1.5, 2].map((d) => (
                 <button
                   key={d}
-                  onClick={() => setDuration(d)}
+                  onClick={() => {
+                    setDuration(d);
+                    saveMeetingSettings({ meetingDuration: d * 60 }); // Convert hours to minutes
+                  }}
                   className={`
                     px-4 py-2 rounded-md text-sm font-medium transition-all duration-150
                     ${duration === d

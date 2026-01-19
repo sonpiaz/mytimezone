@@ -60,8 +60,8 @@ export const TimeIndicator = ({
         setTopPosition(topRelativeToContainer);
         setActualRowHeight(indicatorHeight);
         
-        // Debug log
-        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        // Debug log (dev only)
+        if (import.meta.env.DEV && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
           console.log('=== INDICATOR POSITION DEBUG ===');
           console.log('Container top:', containerRect.top);
           console.log('First row top:', firstRect.top);

@@ -45,8 +45,8 @@ export const fuzzySearchCities = (
 
   const normalizedQuery = normalize(query.trim());
 
-  // Debug logging (only in development - remove in production)
-  const DEBUG = false; // Set to true to enable debug logs
+  // Debug logging (dev only)
+  const DEBUG = import.meta.env.DEV && false; // Set to true to enable debug logs
   if (DEBUG) {
     console.log('=== DEBUG SEARCH ===');
     console.log('Query:', normalizedQuery);
