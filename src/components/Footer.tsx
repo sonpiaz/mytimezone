@@ -49,7 +49,7 @@ export const Footer = () => {
             </button>
             <span className="text-[#D1D5DB]">·</span>
             <Link
-              to="/embed-generator"
+              to="/embed"
               className="text-[#6B7280] hover:text-[#374151] transition-colors"
               title="Get embed code for your website"
             >

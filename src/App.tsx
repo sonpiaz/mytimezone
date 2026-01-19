@@ -9,8 +9,8 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<AboutPage />} />
-      <Route path="/embed" element={<EmbedPage />} />
-      <Route path="/embed-generator" element={<EmbedGeneratorPage />} />
+      <Route path="/widget" element={<EmbedPage />} />
+      <Route path="/embed" element={<EmbedGeneratorPage />} />
       <Route path="/meet/:cities/:hours/:duration/:date" element={<HomePage />} />
     </Routes>
   );

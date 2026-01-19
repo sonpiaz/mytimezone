@@ -32,7 +32,7 @@ export const EmbedGeneratorPage = () => {
 
   // Generate embed URL and code
   const cityCodes = displayCities.map(c => c.code).join(',');
-  const embedUrl = `https://mytimezone.online/embed?cities=${cityCodes}&theme=${theme}${compact ? '&compact=true' : ''}`;
+  const embedUrl = `https://mytimezone.online/widget?cities=${cityCodes}&theme=${theme}${compact ? '&compact=true' : ''}`;
   const embedCode = `<iframe
   src="${embedUrl}"
   width="100%"

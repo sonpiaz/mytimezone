@@ -22,6 +22,14 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
   const isNavigatingRef = useRef(false);
   const citiesRef = useRef<City[]>([]);
 
+  // CRITICAL: Only sync URL on homepage - return early on other pages
+  // This prevents conflicts with React Router navigation
+  if (!isHomePage) {
+    const defaultCities = getCitiesBySlugs(['san-francisco', 'london', 'singapore']);
+    const noop = () => {}; // No-op function for setCities
+    return [defaultCities, noop];
+  }
+
   const [cities, setCities] = useState<City[]>(() => {
     // Only parse URL if on home page
     if (location.pathname !== '/') {
