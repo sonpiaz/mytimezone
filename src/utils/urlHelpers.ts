@@ -1,44 +1,109 @@
 import type { City } from '../types';
-import { DEFAULT_CITIES } from '../constants/cities';
+
+// Build lookup maps for performance
+const codeToCity = new Map<string, City>();
+const slugToCity = new Map<string, City>();
+
+// Initialize maps (will be populated when cities are imported)
+import { CITIES } from '../constants/cities';
+CITIES.forEach(city => {
+  codeToCity.set(city.code.toLowerCase(), city);
+  slugToCity.set(city.slug.toLowerCase(), city);
+});
 
 /**
- * Encode cities array to URL parameter string
- * Optimized: Early return for empty array
+ * Find city by code OR slug (backward compatible)
  */
-export const encodeCitiesToUrl = (cities: City[]): string => {
+export function findCityByCodeOrSlug(identifier: string): City | undefined {
+  const lower = identifier.toLowerCase();
+  return codeToCity.get(lower) || slugToCity.get(lower);
+}
+
+/**
+ * Encode cities to short URL param using codes
+ * Output: "sf,ldn,sgp"
+ */
+export function encodeCitiesToUrl(cities: City[]): string {
   if (cities.length === 0) return '';
-  return cities.map(city => city.slug).join(',');
-};
+  return cities.map(c => c.code).join(',');
+}
 
 /**
- * Decode URL parameter string to cities slugs array
- * Includes validation and error handling
+ * Decode URL param to cities (supports both old and new format)
+ * Input: "sf,ldn,sgp" OR "san-francisco,london,singapore"
  */
-export const decodeCitiesFromUrl = (urlParam: string | null): string[] => {
-  if (!urlParam || typeof urlParam !== 'string') return DEFAULT_CITIES;
+export function decodeCitiesFromUrl(param: string | null): City[] {
+  if (!param || typeof param !== 'string') return [];
   
   try {
-    const slugs = urlParam.split(',').filter(slug => slug.trim() !== '');
+    const identifiers = param.split(',').map(s => s.trim()).filter(Boolean);
+    const result: City[] = [];
+    
+    for (const id of identifiers) {
+      const city = findCityByCodeOrSlug(id);
+      if (city) {
+        result.push(city);
+      }
+    }
+    
     // Validate: max 10 cities to prevent URL length issues
-    return slugs.slice(0, 10);
+    return result.slice(0, 10);
   } catch (error) {
     console.error('Failed to decode cities from URL:', error);
-    return DEFAULT_CITIES;
+    return [];
+  }
+}
+
+/**
+ * Get cities from URL (supports both old ?cities= and new ?c= format)
+ * Returns city objects, not slugs
+ */
+export const getCitiesFromUrl = (): City[] => {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Try new format first: ?c=sf,ldn,sgp
+    const shortParam = urlParams.get('c');
+    if (shortParam) {
+      const cities = decodeCitiesFromUrl(shortParam);
+      if (cities.length > 0) {
+        return cities;
+      }
+    }
+    
+    // Fallback to old format: ?cities=san-francisco,london
+    const oldParam = urlParams.get('cities');
+    if (oldParam) {
+      const cities = decodeCitiesFromUrl(oldParam);
+      if (cities.length > 0) {
+        return cities;
+      }
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Failed to get cities from URL:', error);
+    return [];
   }
 };
 
 /**
  * Update URL parameters without page reload
- * Uses replaceState to avoid adding to browser history
+ * Always uses new short format: ?c=sf,ldn,sgp
  */
 export const updateUrlParams = (cities: City[]): void => {
   try {
+    if (window.location.pathname !== '/') return;
+    
     const encoded = encodeCitiesToUrl(cities);
     const url = new URL(window.location.href);
     
     if (encoded) {
-      url.searchParams.set('cities', encoded);
+      url.searchParams.set('c', encoded);
+      // Remove old 'cities' param if exists
+      url.searchParams.delete('cities');
     } else {
+      url.searchParams.delete('c');
       url.searchParams.delete('cities');
     }
     
@@ -46,19 +111,5 @@ export const updateUrlParams = (cities: City[]): void => {
   } catch (error) {
     console.error('Failed to update URL params:', error);
     // Silently fail - URL update is not critical
-  }
-};
-
-/**
- * Get cities slugs from current URL
- * Returns default cities if URL param is invalid
- */
-export const getCitiesFromUrl = (): string[] => {
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    return decodeCitiesFromUrl(urlParams.get('cities'));
-  } catch (error) {
-    console.error('Failed to get cities from URL:', error);
-    return DEFAULT_CITIES;
   }
 };

@@ -1,14 +1,27 @@
 import { useState } from 'react';
+import { encodeCitiesToUrl } from '../utils/urlHelpers';
+import type { City } from '../types';
 
 interface ShareButtonProps {
   t: (key: string) => string;
+  cities?: City[]; // Optional: if provided, generate short URL
 }
 
-export const ShareButton = ({ t }: ShareButtonProps) => {
+export const ShareButton = ({ t, cities }: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const url = window.location.href;
+    let url: string;
+    
+    // If cities provided, generate short URL with codes
+    if (cities && cities.length > 0) {
+      const encoded = encodeCitiesToUrl(cities);
+      const baseUrl = window.location.origin;
+      url = encoded ? `${baseUrl}/?c=${encoded}` : baseUrl;
+    } else {
+      // Fallback to current URL
+      url = window.location.href;
+    }
     
     try {
       // Try native share API first (mobile)

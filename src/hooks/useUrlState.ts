@@ -31,13 +31,11 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
     }
 
     // 1. Check URL params first (highest priority)
-    const urlSlugs = getCitiesFromUrl();
-    if (urlSlugs.length > 0) {
-      const urlCities = getCitiesBySlugs(urlSlugs);
-      if (urlCities.length > 0) {
-        citiesRef.current = urlCities;
-        return urlCities;
-      }
+    // getCitiesFromUrl now returns City[] directly (supports both old and new format)
+    const urlCities = getCitiesFromUrl();
+    if (urlCities.length > 0) {
+      citiesRef.current = urlCities;
+      return urlCities;
     }
 
     // 2. Check localStorage (second priority)
@@ -149,8 +147,7 @@ export const useUrlState = (): [City[], (cities: City[]) => void] => {
         return;
       }
 
-      const slugs = getCitiesFromUrl();
-      const newCities = getCitiesBySlugs(slugs);
+      const newCities = getCitiesFromUrl();
       
       // Use ref to compare, not state (to avoid dependency on cities)
       // Only update if cities actually changed

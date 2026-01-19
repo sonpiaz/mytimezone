@@ -210,7 +210,7 @@ export function HomePage() {
               </button>
               
               {/* Share Button - Ghost style */}
-              <ShareButton t={t} />
+              <ShareButton t={t} cities={cities} />
               
               {/* Find Best Time - Primary CTA */}
               {cities.length >= 2 && (

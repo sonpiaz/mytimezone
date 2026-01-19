@@ -7,6 +7,7 @@ export interface City {
   aliases?: string[]; // Alternative names/aliases for search (e.g., "Hawaii" for Honolulu, "Saigon" for Ho Chi Minh City)
   timezone: string; // IANA format
   slug: string; // for URL
+  code: string; // Short code for URL (2-4 characters, e.g., "sf", "nyc", "ldn")
 }
 
 export interface TimeZoneData {
